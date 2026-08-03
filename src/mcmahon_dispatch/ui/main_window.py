@@ -19,11 +19,13 @@ from mcmahon_dispatch.core.config import AppConfig
 from mcmahon_dispatch.services.auth_service import AuthenticatedUser, AuthenticationService
 from mcmahon_dispatch.services.dashboard_service import DashboardService
 from mcmahon_dispatch.services.dispatch_service import DispatchService
+from mcmahon_dispatch.services.fleet_service import FleetService
 from mcmahon_dispatch.services.customer_service import CustomerService
 from mcmahon_dispatch.services.settings_service import SettingsService
 from mcmahon_dispatch.services.quote_service import QuoteService
 from mcmahon_dispatch.ui.pages.dashboard_page import DashboardPage
 from mcmahon_dispatch.ui.pages.dispatch_page import DispatchPage
+from mcmahon_dispatch.ui.pages.fleet_page import FleetPage
 from mcmahon_dispatch.ui.pages.customer_page import CustomerPage
 from mcmahon_dispatch.ui.pages.module_page import ModulePage
 from mcmahon_dispatch.ui.pages.quote_page import QuotePage
@@ -40,6 +42,7 @@ class MainWindow(QMainWindow):
         customers: CustomerService,
         quotes: QuoteService,
         dispatch: DispatchService,
+        fleet: FleetService,
         user: AuthenticatedUser,
     ) -> None:
         super().__init__()
@@ -62,6 +65,8 @@ class MainWindow(QMainWindow):
             self.pages["customers"] = CustomerPage(customers)
         if user.can("dispatch.read"):
             self.pages["dispatch"] = DispatchPage(dispatch)
+        if user.can("fleet.read"):
+            self.pages["fleet"] = FleetPage(fleet)
         for item in NAVIGATION:
             if item.key not in {"dashboard", "quotes", "customers", "dispatch", "calendar", "fleet"} and user.can(item.permission):
                 self.pages[item.key] = ModulePage(item.key)
@@ -115,11 +120,11 @@ class MainWindow(QMainWindow):
         self._activity_timer = QTimer(self); self._activity_timer.timeout.connect(self._tick_inactivity); self._activity_timer.start(1000)
         self.installEventFilter(self)
         start = str(settings.get("appearance.start_page", "dashboard"))
-        valid_start = start in self.pages or start in {"calendar", "fleet"}
+        valid_start = start in self.pages or start == "calendar"
         self.navigate(start if valid_start else "dashboard")
 
     def navigate(self, key: str) -> None:
-        page_key = "dispatch" if key in {"calendar", "fleet"} else key
+        page_key = "dispatch" if key == "calendar" else key
         page = self.pages.get(page_key)
         if page is None:
             return

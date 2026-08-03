@@ -13,6 +13,7 @@ from mcmahon_dispatch.database.seed import seed_foundation_data
 from mcmahon_dispatch.services.auth_service import AuthenticationService
 from mcmahon_dispatch.services.dashboard_service import DashboardService
 from mcmahon_dispatch.services.dispatch_service import DispatchService
+from mcmahon_dispatch.services.fleet_service import FleetService
 from mcmahon_dispatch.services.customer_service import CustomerService
 from mcmahon_dispatch.services.settings_service import SettingsService
 from mcmahon_dispatch.services.quote_service import QuoteService
@@ -71,6 +72,12 @@ def run_desktop() -> int:
         can_manage=login.authenticated_user.can("dispatch.manage"),
         can_view_financials=login.authenticated_user.can("reports.financial"),
     )
+    fleet = FleetService(
+        database.session_factory,
+        login.authenticated_user.organization_id,
+        login.authenticated_user.id,
+        can_write=login.authenticated_user.can("fleet.write"),
+    )
     window = MainWindow(
         config,
         settings,
@@ -79,6 +86,7 @@ def run_desktop() -> int:
         customers,
         quotes,
         dispatch,
+        fleet,
         login.authenticated_user,
     )
     window.show()

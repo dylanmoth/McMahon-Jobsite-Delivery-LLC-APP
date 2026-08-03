@@ -22,7 +22,7 @@ NAVIGATION = (
     NavigationItem("calendar", "Calendar", "dispatch.read"),
     NavigationItem("customers", "Customers", "customers.read"),
     NavigationItem("suppliers", "Suppliers", "customers.read"),
-    NavigationItem("fleet", "Drivers / Fleet", "dispatch.read"),
+    NavigationItem("fleet", "Fleet Management", "fleet.read"),
     NavigationItem("invoices", "Invoices", "billing.read"),
     NavigationItem("reports", "Reports", "reports.financial"),
     NavigationItem("documents", "Documents", "customers.read"),

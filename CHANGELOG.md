@@ -1,3 +1,12 @@
+# Changelog
+
+## 0.7.0 - 2026-08-03
+
+- Added production Fleet Management for vehicles, odometer tracking, maintenance, repairs, oil changes, fuel purchases, MPG, insurance and registration expiration, cost per mile, and fleet reports.
+- Added responsive vehicle, maintenance, fuel, and report screens.
+- Added permission-aware fleet writes and audited fleet changes.
+- Added automatic MPG and blended operating-cost calculations.
+
 # McMahon Dispatch v0.6.1 — Navigation Accessibility
 
 ## Changed

@@ -1,19 +1,12 @@
-McMahon Dispatch v0.6.1 Navigation & Terminology Patch
+McMahon Dispatch Fleet Management v0.7.0
 
 1. Close McMahon Dispatch.
-2. Back up the current McMahonDispatch project folder.
-3. Copy everything inside this patch folder into the project root:
-   C:\Users\thedy\OneDrive\Desktop\MJD BUSINESS\McMahonDispatch
-4. Choose "Replace the files in the destination" when prompted.
+2. Back up the existing project folder.
+3. Copy the contents of this patch into the project root.
+4. Choose Replace files in the destination.
 5. Run:
+   .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
    .\.venv\Scripts\python.exe -m pytest
    .\.venv\Scripts\python.exe -m mcmahon_dispatch
 
-No Alembic migration is required.
-No dependency reinstall is required.
-
-Visible changes:
-- An always-visible navigation button appears in the top-left application bar.
-- Ctrl+B shows or hides navigation.
-- The Dispatch tab previously labeled "Kanban" is now labeled "Job Board".
-- The customer module remains labeled "Customers".
+No Alembic migration is required. The normalized v0.2 schema already includes vehicles, maintenance_records, fuel_entries, registration, insurance, odometer, MPG, and cost-per-mile fields.
