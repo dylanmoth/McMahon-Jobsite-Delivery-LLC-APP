@@ -1,20 +1,13 @@
-McMahon Dispatch Invoice Management v0.8.0
-
 NEW
-src/mcmahon_dispatch/repositories/invoice_repository.py
-src/mcmahon_dispatch/services/invoice_service.py
-src/mcmahon_dispatch/services/invoice_pdf.py
-src/mcmahon_dispatch/ui/pages/invoice_page.py
-tests/test_invoice_service.py
+src/mcmahon_dispatch/repositories/reporting_repository.py
+src/mcmahon_dispatch/services/reporting_service.py
+src/mcmahon_dispatch/ui/pages/reporting_page.py
+tests/test_reporting.py
 
 MODIFIED
 src/mcmahon_dispatch/bootstrap.py
 src/mcmahon_dispatch/ui/main_window.py
-src/mcmahon_dispatch/ui/theme/dark.qss
-src/mcmahon_dispatch/ui/theme/light.qss
+src/mcmahon_dispatch/repositories/invoice_repository.py
+src/mcmahon_dispatch/services/invoice_pdf.py
 src/mcmahon_dispatch/__init__.py
 pyproject.toml
-CHANGELOG.md
-
-DATABASE MIGRATION
-None. Existing normalized invoice, payment, allocation, document, audit, customer, and numbering tables are used.

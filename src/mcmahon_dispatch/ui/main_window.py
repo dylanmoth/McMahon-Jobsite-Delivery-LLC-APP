@@ -21,6 +21,7 @@ from mcmahon_dispatch.services.dashboard_service import DashboardService
 from mcmahon_dispatch.services.dispatch_service import DispatchService
 from mcmahon_dispatch.services.fleet_service import FleetService
 from mcmahon_dispatch.services.invoice_service import InvoiceService
+from mcmahon_dispatch.services.reporting_service import ReportingService
 from mcmahon_dispatch.services.customer_service import CustomerService
 from mcmahon_dispatch.services.settings_service import SettingsService
 from mcmahon_dispatch.services.quote_service import QuoteService
@@ -31,6 +32,7 @@ from mcmahon_dispatch.ui.pages.invoice_page import InvoicePage
 from mcmahon_dispatch.ui.pages.customer_page import CustomerPage
 from mcmahon_dispatch.ui.pages.module_page import ModulePage
 from mcmahon_dispatch.ui.pages.quote_page import QuotePage
+from mcmahon_dispatch.ui.pages.reporting_page import ReportingPage
 from mcmahon_dispatch.ui.sidebar import NAVIGATION, Sidebar
 
 
@@ -46,6 +48,7 @@ class MainWindow(QMainWindow):
         dispatch: DispatchService,
         fleet: FleetService,
         invoices: InvoiceService,
+        reporting: ReportingService,
         user: AuthenticatedUser,
     ) -> None:
         super().__init__()
@@ -72,8 +75,10 @@ class MainWindow(QMainWindow):
             self.pages["fleet"] = FleetPage(fleet)
         if user.can("billing.read"):
             self.pages["invoices"] = InvoicePage(invoices)
+        if user.can("reports.financial"):
+            self.pages["reports"] = ReportingPage(reporting)
         for item in NAVIGATION:
-            if item.key not in {"dashboard", "quotes", "customers", "dispatch", "calendar", "fleet", "invoices"} and user.can(item.permission):
+            if item.key not in {"dashboard", "quotes", "customers", "dispatch", "calendar", "fleet", "invoices", "reports"} and user.can(item.permission):
                 self.pages[item.key] = ModulePage(item.key)
         for page in self.pages.values():
             self.stack.addWidget(page)

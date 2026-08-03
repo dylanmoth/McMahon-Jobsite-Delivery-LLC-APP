@@ -438,7 +438,6 @@ class InvoiceRepository:
             ).where(*invoice_filter)
         ).one()
         aggregate = tuple(value or 0 for value in aggregate)
-
         invoiced, collected, outstanding, count, paid_count = map(int, aggregate)
         today = datetime.now(UTC).date()
         overdue_cents = int(

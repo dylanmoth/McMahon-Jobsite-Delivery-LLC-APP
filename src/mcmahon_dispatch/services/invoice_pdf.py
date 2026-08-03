@@ -210,14 +210,10 @@ class InvoicePdfWriter:
             self.small,
         )
         title_block = Paragraph(
-    f"""
-    <font size="18"><b>{title}</b></font>
-    <br/><br/>
-    <font size="10" color="#F97316"><b>{reference}</b></font>
-    """,
-    self.right,
-)
-        table = Table([[logo or company, company if logo else "", title_block]], colWidths=[1.65 * inch, 3.55 * inch, 1.70 * inch])
+            f'<font size="18"><b>{title}</b></font><br/><br/><font size="10" color="#F97316"><b>{reference}</b></font>',
+            self.right,
+        )
+        table = Table([[logo or company, company if logo else "", title_block]], colWidths=[1.65 * inch, 3.25 * inch, 2.0 * inch])
         table.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "TOP"), ("ALIGN", (-1, 0), (-1, 0), "RIGHT")]))
         return [table, Spacer(1, 12)]
 

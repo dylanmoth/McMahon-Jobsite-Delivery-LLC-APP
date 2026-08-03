@@ -1,20 +1,14 @@
-McMahon Dispatch Invoice Management v0.8.0
+McMahon Dispatch Reporting v0.9.0
 
 1. Close McMahon Dispatch.
-2. Make a backup of the current McMahonDispatch project folder.
-3. Copy everything inside this patch folder into the existing McMahonDispatch project folder.
-4. Choose "Replace the files in the destination" when Windows asks.
-5. Open PowerShell in the project folder and run:
+2. Back up the current project folder.
+3. Copy everything inside this patch into the existing McMahonDispatch folder.
+4. Choose Replace files in the destination.
+5. Run:
 
-   .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-   .\.venv\Scripts\python.exe -m pytest
-   .\.venv\Scripts\python.exe -m mcmahon_dispatch
+cd "C:\Users\thedy\OneDrive\Desktop\MJD BUSINESS\McMahonDispatch"
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m pytest
+.\.venv\Scripts\python.exe -m mcmahon_dispatch
 
 No Alembic migration is required.
-
-After successful testing, update GitHub:
-
-   git status
-   git add .
-   git commit -m "Add invoice management payments statements and reports"
-   git push
