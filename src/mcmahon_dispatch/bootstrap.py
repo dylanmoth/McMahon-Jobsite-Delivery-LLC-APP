@@ -14,6 +14,7 @@ from mcmahon_dispatch.services.auth_service import AuthenticationService
 from mcmahon_dispatch.services.dashboard_service import DashboardService
 from mcmahon_dispatch.services.dispatch_service import DispatchService
 from mcmahon_dispatch.services.fleet_service import FleetService
+from mcmahon_dispatch.services.invoice_service import InvoiceService
 from mcmahon_dispatch.services.customer_service import CustomerService
 from mcmahon_dispatch.services.settings_service import SettingsService
 from mcmahon_dispatch.services.quote_service import QuoteService
@@ -78,6 +79,14 @@ def run_desktop() -> int:
         login.authenticated_user.id,
         can_write=login.authenticated_user.can("fleet.write"),
     )
+    invoices = InvoiceService(
+        database.session_factory,
+        login.authenticated_user.organization_id,
+        login.authenticated_user.id,
+        config.paths.documents,
+        Path(__file__).parent / "assets" / "images" / "mcmahon_dispatch_logo.png",
+        can_write=login.authenticated_user.can("billing.write"),
+    )
     window = MainWindow(
         config,
         settings,
@@ -87,6 +96,7 @@ def run_desktop() -> int:
         quotes,
         dispatch,
         fleet,
+        invoices,
         login.authenticated_user,
     )
     window.show()

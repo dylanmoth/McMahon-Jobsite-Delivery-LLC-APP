@@ -52,3 +52,7 @@ No migration is required.
 ## Database
 
 No new migration is required. The normalized schema already includes all Dispatch Center tables used by this release.
+
+## 0.8.0 - 2026-08-03
+
+- Added complete invoice management with live totals, partial payments, balances, overdue status, manual late fees, searchable invoices and payments, financial reports, professional PDF invoices, email-ready invoice packages, and customer statement PDFs.

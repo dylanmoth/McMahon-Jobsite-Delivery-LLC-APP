@@ -195,3 +195,12 @@ QLabel#sectionTitle {
     font-weight: 750;
     background: transparent;
 }
+
+/* Invoice Management v0.8 */
+QWidget#invoicePage { background: #0B1220; }
+QWidget#invoicePage QGroupBox { background: #111827; border: 1px solid #334155; border-radius: 10px; margin-top: 10px; padding-top: 10px; }
+QWidget#invoicePage QGroupBox::title { color: #F97316; subcontrol-origin: margin; left: 12px; padding: 0 5px; font-weight: 700; }
+QWidget#invoicePage QTableWidget { background: #0F172A; alternate-background-color: #111827; border: 1px solid #334155; border-radius: 8px; gridline-color: #334155; }
+QWidget#invoicePage QHeaderView::section { background: #111827; color: #CBD5E1; border: 0; border-bottom: 1px solid #334155; padding: 8px; font-weight: 700; }
+QWidget#invoicePage QTableWidget::item:selected { background: #7C2D12; color: #FFFFFF; }
+QWidget#invoicePage QTabBar::tab:selected { color: #F97316; border-bottom: 2px solid #F97316; }

@@ -1,12 +1,20 @@
-McMahon Dispatch Fleet Management v0.7.0
+McMahon Dispatch Invoice Management v0.8.0
 
 1. Close McMahon Dispatch.
-2. Back up the existing project folder.
-3. Copy the contents of this patch into the project root.
-4. Choose Replace files in the destination.
-5. Run:
+2. Make a backup of the current McMahonDispatch project folder.
+3. Copy everything inside this patch folder into the existing McMahonDispatch project folder.
+4. Choose "Replace the files in the destination" when Windows asks.
+5. Open PowerShell in the project folder and run:
+
    .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
    .\.venv\Scripts\python.exe -m pytest
    .\.venv\Scripts\python.exe -m mcmahon_dispatch
 
-No Alembic migration is required. The normalized v0.2 schema already includes vehicles, maintenance_records, fuel_entries, registration, insurance, odometer, MPG, and cost-per-mile fields.
+No Alembic migration is required.
+
+After successful testing, update GitHub:
+
+   git status
+   git add .
+   git commit -m "Add invoice management payments statements and reports"
+   git push

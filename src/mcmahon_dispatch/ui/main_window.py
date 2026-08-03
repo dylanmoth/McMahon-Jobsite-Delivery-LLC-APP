@@ -20,12 +20,14 @@ from mcmahon_dispatch.services.auth_service import AuthenticatedUser, Authentica
 from mcmahon_dispatch.services.dashboard_service import DashboardService
 from mcmahon_dispatch.services.dispatch_service import DispatchService
 from mcmahon_dispatch.services.fleet_service import FleetService
+from mcmahon_dispatch.services.invoice_service import InvoiceService
 from mcmahon_dispatch.services.customer_service import CustomerService
 from mcmahon_dispatch.services.settings_service import SettingsService
 from mcmahon_dispatch.services.quote_service import QuoteService
 from mcmahon_dispatch.ui.pages.dashboard_page import DashboardPage
 from mcmahon_dispatch.ui.pages.dispatch_page import DispatchPage
 from mcmahon_dispatch.ui.pages.fleet_page import FleetPage
+from mcmahon_dispatch.ui.pages.invoice_page import InvoicePage
 from mcmahon_dispatch.ui.pages.customer_page import CustomerPage
 from mcmahon_dispatch.ui.pages.module_page import ModulePage
 from mcmahon_dispatch.ui.pages.quote_page import QuotePage
@@ -43,6 +45,7 @@ class MainWindow(QMainWindow):
         quotes: QuoteService,
         dispatch: DispatchService,
         fleet: FleetService,
+        invoices: InvoiceService,
         user: AuthenticatedUser,
     ) -> None:
         super().__init__()
@@ -67,8 +70,10 @@ class MainWindow(QMainWindow):
             self.pages["dispatch"] = DispatchPage(dispatch)
         if user.can("fleet.read"):
             self.pages["fleet"] = FleetPage(fleet)
+        if user.can("billing.read"):
+            self.pages["invoices"] = InvoicePage(invoices)
         for item in NAVIGATION:
-            if item.key not in {"dashboard", "quotes", "customers", "dispatch", "calendar", "fleet"} and user.can(item.permission):
+            if item.key not in {"dashboard", "quotes", "customers", "dispatch", "calendar", "fleet", "invoices"} and user.can(item.permission):
                 self.pages[item.key] = ModulePage(item.key)
         for page in self.pages.values():
             self.stack.addWidget(page)
@@ -158,6 +163,10 @@ class MainWindow(QMainWindow):
                 page = self.pages.get("dispatch")
                 if isinstance(page, DispatchPage):
                     page.new_job()
+            elif action == "record_payment":
+                page = self.pages.get("invoices")
+                if isinstance(page, InvoicePage):
+                    page.record_payment()
 
     def _toggle_sidebar(self) -> None:
         collapsed = not self.sidebar.is_collapsed
