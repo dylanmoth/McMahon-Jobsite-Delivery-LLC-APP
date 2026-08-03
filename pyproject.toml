@@ -1,0 +1,62 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mcmahon-dispatch"
+version = "0.4.1"
+description = "Commercial local-first dispatch platform for McMahon Jobsite Delivery LLC"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+authors = [{name = "McMahon Jobsite Delivery LLC"}]
+dependencies = [
+  "PySide6>=6.8,<7",
+  "SQLAlchemy>=2.0.36,<3",
+  "alembic>=1.14,<2",
+  "argon2-cffi>=23.1,<26",
+  "platformdirs>=4.3,<5",
+  "pydantic>=2.10,<3",
+  "pydantic-settings>=2.7,<3",
+  "reportlab>=4.2,<5",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3,<9",
+  "pytest-cov>=6,<7",
+  "pytest-qt>=4.4,<5",
+  "ruff>=0.9,<1",
+  "mypy>=1.14,<2",
+  "black>=24.10,<26",
+  "pre-commit>=4,<5",
+  "pyinstaller>=6.11,<7",
+]
+
+[project.scripts]
+mcmahon-dispatch = "mcmahon_dispatch.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcmahon_dispatch"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "C4", "RUF"]
+ignore = ["E501"]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["mcmahon_dispatch"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-markers --strict-config"
+testpaths = ["tests"]
+markers = ["qt: requires a graphical Qt runtime"]

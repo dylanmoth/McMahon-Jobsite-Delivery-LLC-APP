@@ -1,0 +1,90 @@
+QWidget { background: #0B1220; color: #E5E7EB; font-family: "Segoe UI"; font-size: 10pt; }
+QMainWindow, QDialog { background: #0B1220; }
+QFrame#sidebar { background: #111827; border-right: 1px solid #263244; }
+QFrame#topbar { background: #111827; border-bottom: 1px solid #263244; }
+QLabel#brandTitle { font-size: 16pt; font-weight: 700; color: #FFFFFF; }
+QLabel#pageTitle { font-size: 20pt; font-weight: 700; color: #FFFFFF; }
+QLabel#muted { color: #9CA3AF; }
+QPushButton { background: #1F2937; border: 1px solid #374151; border-radius: 6px; padding: 8px 12px; }
+QPushButton:hover { border-color: #F97316; }
+QPushButton:focus { border: 2px solid #F97316; }
+QPushButton#primary { background: #F97316; color: #111827; border: none; font-weight: 700; }
+QPushButton#navButton { border: none; text-align: left; padding: 10px 14px; background: transparent; }
+QPushButton#navButton:hover, QPushButton#navButton[active="true"] { background: #1F2937; color: #F97316; }
+QLineEdit, QComboBox, QSpinBox { background: #111827; border: 1px solid #374151; border-radius: 6px; padding: 8px; }
+QLineEdit:focus, QComboBox:focus { border: 2px solid #F97316; }
+QFrame#metricCard { background: #111827; border: 1px solid #263244; border-radius: 10px; }
+QLabel#metricValue { font-size: 22pt; font-weight: 700; color: #FFFFFF; }
+QLabel#metricLabel { color: #9CA3AF; }
+QStatusBar { background: #111827; color: #9CA3AF; }
+
+/* Dashboard v0.3 */
+QWidget#dashboardContent { background: #0B1220; }
+QLabel#dashboardUpdated { color: #64748B; font-size: 9pt; }
+QPushButton#secondaryCompact { padding: 7px 12px; border-radius: 8px; }
+QFrame#metricCard {
+    background: #111827;
+    border: 1px solid #263244;
+    border-radius: 12px;
+}
+QFrame#metricCard:hover { border-color: #475569; background: #151F2E; }
+QFrame#metricAccent { border: none; border-top-left-radius: 12px; border-bottom-left-radius: 12px; background: #F97316; }
+QFrame#metricAccent[accent="green"] { background: #22C55E; }
+QFrame#metricAccent[accent="blue"] { background: #38BDF8; }
+QFrame#metricAccent[accent="amber"] { background: #F59E0B; }
+QFrame#metricAccent[accent="red"] { background: #EF4444; }
+QLabel#metricLabel { color: #94A3B8; font-weight: 600; font-size: 9pt; }
+QLabel#metricValue { color: #F8FAFC; font-size: 22pt; font-weight: 700; }
+QLabel#metricHelper { color: #64748B; font-size: 8.5pt; }
+QFrame#dashboardPanel {
+    background: #111827;
+    border: 1px solid #263244;
+    border-radius: 12px;
+}
+QLabel#panelTitle { color: #F8FAFC; font-size: 12pt; font-weight: 700; }
+QLabel#panelSubtitle { color: #64748B; font-size: 9pt; }
+QPushButton#primaryAction {
+    background: #F97316;
+    color: #111827;
+    border: none;
+    border-radius: 9px;
+    font-weight: 700;
+    text-align: left;
+    padding: 10px 14px;
+}
+QPushButton#primaryAction:hover { background: #FB923C; }
+QPushButton#quickAction {
+    background: #172033;
+    border: 1px solid #2B3A50;
+    border-radius: 9px;
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+}
+QPushButton#quickAction:hover { border-color: #F97316; background: #1C293D; }
+QFrame#notificationRow { background: #0F172A; border: 1px solid #1E293B; border-radius: 8px; }
+QFrame#notificationRow:hover { border-color: #475569; }
+QLabel#notificationMarker { color: #38BDF8; font-size: 10pt; }
+QLabel#notificationMarker[severity="success"] { color: #22C55E; }
+QLabel#notificationMarker[severity="warning"] { color: #F59E0B; }
+QLabel#notificationMarker[severity="danger"] { color: #EF4444; }
+QLabel#rowTitle { color: #E2E8F0; font-weight: 600; background: transparent; }
+QLabel#rowSubtitle { color: #64748B; font-size: 8.5pt; background: transparent; }
+QLabel#rowMeta { color: #64748B; font-size: 8.5pt; background: transparent; }
+QPushButton#listRowButton {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #1E293B;
+    border-radius: 0;
+    text-align: left;
+    padding: 0;
+}
+QPushButton#listRowButton:hover { background: #172033; }
+QFrame#activityRow { background: transparent; border-bottom: 1px solid #1E293B; }
+QLabel#activityMarker { color: #F97316; font-size: 15pt; background: transparent; }
+QLabel#emptyState { color: #64748B; background: transparent; }
+QScrollArea { border: none; background: #0B1220; }
+QScrollBar:vertical { background: #0B1220; width: 11px; margin: 0; }
+QScrollBar::handle:vertical { background: #334155; border-radius: 5px; min-height: 30px; }
+QScrollBar::handle:vertical:hover { background: #475569; }
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
