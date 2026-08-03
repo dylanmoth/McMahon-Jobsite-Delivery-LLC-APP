@@ -1,10 +1,7 @@
-McMahon Dispatch Reporting v0.9.0
-
 1. Close McMahon Dispatch.
-2. Back up the current project folder.
-3. Copy everything inside this patch into the existing McMahonDispatch folder.
-4. Choose Replace files in the destination.
-5. Run:
+2. Back up the current McMahonDispatch project folder.
+3. Copy all contents of this patch into the project root and replace matching files.
+4. Run:
 
 cd "C:\Users\thedy\OneDrive\Desktop\MJD BUSINESS\McMahonDispatch"
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"

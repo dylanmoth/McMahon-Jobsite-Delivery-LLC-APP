@@ -1,0 +1,16 @@
+McMahon Dispatch UI Polish & Branding v1.1.0
+
+Modified:
+- pyproject.toml
+- src/mcmahon_dispatch/__init__.py
+- src/mcmahon_dispatch/bootstrap.py
+- src/mcmahon_dispatch/services/settings_service.py
+- src/mcmahon_dispatch/ui/main_window.py
+- src/mcmahon_dispatch/ui/pages/user_management_page.py
+- src/mcmahon_dispatch/ui/theme/theme_manager.py
+
+Added:
+- tests/test_theme_manager.py
+
+Database migration: No
+New dependencies: No

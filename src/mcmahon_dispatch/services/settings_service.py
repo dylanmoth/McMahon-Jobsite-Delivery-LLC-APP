@@ -11,6 +11,9 @@ from typing import Any
 class SettingsService:
     DEFAULTS: dict[str, Any] = {
         "appearance.theme": "dark",
+        "appearance.accent": "classic",
+        "appearance.density": "comfortable",
+        "appearance.font_scale": 100,
         "appearance.sidebar_collapsed": False,
         "appearance.start_page": "dashboard",
         "window.width": 1440,
@@ -40,6 +43,12 @@ class SettingsService:
     def set(self, key: str, value: Any) -> None:
         with self._lock:
             self._values[key] = value
+            self._write_atomic()
+
+    def set_many(self, values: dict[str, Any]) -> None:
+        """Persist a related group of settings with a single atomic write."""
+        with self._lock:
+            self._values.update(values)
             self._write_atomic()
 
     def _write_atomic(self) -> None:

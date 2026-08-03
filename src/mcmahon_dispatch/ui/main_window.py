@@ -24,6 +24,7 @@ from mcmahon_dispatch.services.invoice_service import InvoiceService
 from mcmahon_dispatch.services.reporting_service import ReportingService
 from mcmahon_dispatch.services.customer_service import CustomerService
 from mcmahon_dispatch.services.settings_service import SettingsService
+from mcmahon_dispatch.services.user_management_service import UserManagementService
 from mcmahon_dispatch.services.quote_service import QuoteService
 from mcmahon_dispatch.ui.pages.dashboard_page import DashboardPage
 from mcmahon_dispatch.ui.pages.dispatch_page import DispatchPage
@@ -33,7 +34,9 @@ from mcmahon_dispatch.ui.pages.customer_page import CustomerPage
 from mcmahon_dispatch.ui.pages.module_page import ModulePage
 from mcmahon_dispatch.ui.pages.quote_page import QuotePage
 from mcmahon_dispatch.ui.pages.reporting_page import ReportingPage
+from mcmahon_dispatch.ui.pages.user_management_page import ProfilePage, UserManagementPage
 from mcmahon_dispatch.ui.sidebar import NAVIGATION, Sidebar
+from mcmahon_dispatch.ui.theme.theme_manager import ThemeManager
 
 
 class MainWindow(QMainWindow):
@@ -49,10 +52,12 @@ class MainWindow(QMainWindow):
         fleet: FleetService,
         invoices: InvoiceService,
         reporting: ReportingService,
+        user_management: UserManagementService,
+        theme_manager: ThemeManager,
         user: AuthenticatedUser,
     ) -> None:
         super().__init__()
-        self.config=config; self.settings=settings; self.auth=auth; self.user=user
+        self.config=config; self.settings=settings; self.auth=auth; self.user=user; self.theme_manager=theme_manager
         self.setWindowTitle("McMahon Dispatch")
         self.resize(int(settings.get("window.width", 1440)), int(settings.get("window.height", 900)))
         self.sidebar = Sidebar(user)
@@ -77,8 +82,11 @@ class MainWindow(QMainWindow):
             self.pages["invoices"] = InvoicePage(invoices)
         if user.can("reports.financial"):
             self.pages["reports"] = ReportingPage(reporting)
+        if user.can("users.manage"):
+            self.pages["users"] = UserManagementPage(user_management, settings, theme_manager)
+        self.pages["profile"] = ProfilePage(user_management, auth)
         for item in NAVIGATION:
-            if item.key not in {"dashboard", "quotes", "customers", "dispatch", "calendar", "fleet", "invoices", "reports"} and user.can(item.permission):
+            if item.key not in {"dashboard", "quotes", "customers", "dispatch", "calendar", "fleet", "invoices", "reports", "users", "profile", "settings"} and user.can(item.permission):
                 self.pages[item.key] = ModulePage(item.key)
         for page in self.pages.values():
             self.stack.addWidget(page)
@@ -134,12 +142,14 @@ class MainWindow(QMainWindow):
         self.navigate(start if valid_start else "dashboard")
 
     def navigate(self, key: str) -> None:
-        page_key = "dispatch" if key == "calendar" else key
+        page_key = "dispatch" if key == "calendar" else "users" if key == "settings" else key
         page = self.pages.get(page_key)
         if page is None:
             return
         self.stack.setCurrentWidget(page)
         if isinstance(page, DispatchPage):
+            page.set_view(key)
+        if isinstance(page, UserManagementPage):
             page.set_view(key)
         activation_handler = getattr(page, "on_activated", None)
         if callable(activation_handler):

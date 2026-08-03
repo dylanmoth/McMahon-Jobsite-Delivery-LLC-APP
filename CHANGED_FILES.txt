@@ -1,13 +1,20 @@
-NEW
-src/mcmahon_dispatch/repositories/reporting_repository.py
-src/mcmahon_dispatch/services/reporting_service.py
-src/mcmahon_dispatch/ui/pages/reporting_page.py
-tests/test_reporting.py
+McMahon Dispatch v1.0.0 — User Management
 
-MODIFIED
-src/mcmahon_dispatch/bootstrap.py
-src/mcmahon_dispatch/ui/main_window.py
-src/mcmahon_dispatch/repositories/invoice_repository.py
-src/mcmahon_dispatch/services/invoice_pdf.py
-src/mcmahon_dispatch/__init__.py
-pyproject.toml
+Modified:
+- pyproject.toml
+- src/mcmahon_dispatch/__init__.py
+- src/mcmahon_dispatch/core/config.py
+- src/mcmahon_dispatch/bootstrap.py
+- src/mcmahon_dispatch/services/auth_service.py
+- src/mcmahon_dispatch/ui/auth/login_dialog.py
+- src/mcmahon_dispatch/ui/main_window.py
+- src/mcmahon_dispatch/ui/sidebar.py
+
+Added:
+- src/mcmahon_dispatch/repositories/user_management_repository.py
+- src/mcmahon_dispatch/services/user_management_service.py
+- src/mcmahon_dispatch/ui/pages/user_management_page.py
+- tests/test_user_management.py
+
+Database migration: none. Existing users, roles, permissions, devices, and audit tables are used.
+New dependency: keyring (Windows Credential Manager integration for remembered login).

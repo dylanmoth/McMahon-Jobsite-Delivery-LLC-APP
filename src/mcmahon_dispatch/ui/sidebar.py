@@ -25,6 +25,8 @@ NAVIGATION = (
     NavigationItem("fleet", "Fleet Management", "fleet.read"),
     NavigationItem("invoices", "Invoices", "billing.read"),
     NavigationItem("reports", "Reports", "reports.financial"),
+    NavigationItem("users", "Users & Access", "users.manage"),
+    NavigationItem("profile", "My Profile", "dashboard.view"),
     NavigationItem("documents", "Documents", "customers.read"),
     NavigationItem("settings", "Settings", "settings.manage"),
 )

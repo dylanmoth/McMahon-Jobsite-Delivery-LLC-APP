@@ -1,0 +1,11 @@
+1. Close McMahon Dispatch.
+2. Back up the McMahonDispatch project folder.
+3. Copy all contents of this patch into the project root.
+4. Choose Replace files in the destination.
+5. Run:
+
+   .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+   .\.venv\Scripts\python.exe -m pytest
+   .\.venv\Scripts\python.exe -m mcmahon_dispatch
+
+No Alembic migration is required.

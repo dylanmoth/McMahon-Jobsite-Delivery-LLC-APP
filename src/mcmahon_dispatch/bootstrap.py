@@ -18,6 +18,7 @@ from mcmahon_dispatch.services.invoice_service import InvoiceService
 from mcmahon_dispatch.services.reporting_service import ReportingService
 from mcmahon_dispatch.services.customer_service import CustomerService
 from mcmahon_dispatch.services.settings_service import SettingsService
+from mcmahon_dispatch.services.user_management_service import UserManagementService
 from mcmahon_dispatch.services.quote_service import QuoteService
 from mcmahon_dispatch.ui.auth.first_run_dialog import FirstRunAdminDialog
 from mcmahon_dispatch.ui.auth.login_dialog import LoginDialog
@@ -44,7 +45,8 @@ def run_desktop() -> int:
     seed_foundation_data(database.session_factory)
 
     settings = SettingsService(config.paths.settings_file)
-    ThemeManager(app, settings).apply_saved_theme()
+    theme_manager = ThemeManager(app, settings)
+    theme_manager.apply_saved_theme()
     auth = AuthenticationService(database.session_factory, config)
 
     if not auth.has_any_user():
@@ -52,43 +54,54 @@ def run_desktop() -> int:
         if setup.exec() != setup.DialogCode.Accepted:
             return 0
 
-    login = LoginDialog(auth)
-    if login.exec() != login.DialogCode.Accepted or login.authenticated_user is None:
-        return 0
+    authenticated_user = auth.resume_remembered_session()
+    if authenticated_user is None:
+        login = LoginDialog(auth)
+        if login.exec() != login.DialogCode.Accepted or login.authenticated_user is None:
+            return 0
+        authenticated_user = login.authenticated_user
 
     dashboard = DashboardService(database.session_factory)
-    customers = CustomerService(database.session_factory, login.authenticated_user.organization_id, login.authenticated_user.id)
+    customers = CustomerService(database.session_factory, authenticated_user.organization_id, authenticated_user.id)
     quotes = QuoteService(
         database.session_factory,
-        login.authenticated_user.organization_id,
-        login.authenticated_user.id,
+        authenticated_user.organization_id,
+        authenticated_user.id,
         config.paths.documents,
         Path(__file__).parent / "assets" / "images" / "mcmahon_dispatch_logo.png",
-        can_override_price=login.authenticated_user.can("quotes.override_price"),
-        can_write=login.authenticated_user.can("quotes.write"),
+        can_override_price=authenticated_user.can("quotes.override_price"),
+        can_write=authenticated_user.can("quotes.write"),
     )
     dispatch = DispatchService(
         database.session_factory,
-        login.authenticated_user.organization_id,
-        login.authenticated_user.id,
-        can_manage=login.authenticated_user.can("dispatch.manage"),
-        can_view_financials=login.authenticated_user.can("reports.financial"),
+        authenticated_user.organization_id,
+        authenticated_user.id,
+        can_manage=authenticated_user.can("dispatch.manage"),
+        can_view_financials=authenticated_user.can("reports.financial"),
     )
     fleet = FleetService(
         database.session_factory,
-        login.authenticated_user.organization_id,
-        login.authenticated_user.id,
-        can_write=login.authenticated_user.can("fleet.write"),
+        authenticated_user.organization_id,
+        authenticated_user.id,
+        can_write=authenticated_user.can("fleet.write"),
     )
     invoices = InvoiceService(
         database.session_factory,
-        login.authenticated_user.organization_id,
-        login.authenticated_user.id,
+        authenticated_user.organization_id,
+        authenticated_user.id,
         config.paths.documents,
         Path(__file__).parent / "assets" / "images" / "mcmahon_dispatch_logo.png",
-        can_write=login.authenticated_user.can("billing.write"),
+        can_write=authenticated_user.can("billing.write"),
     )
-    reporting = ReportingService(database.session_factory, login.authenticated_user.organization_id, config.paths.documents)
+    reporting = ReportingService(database.session_factory, authenticated_user.organization_id, config.paths.documents)
+    user_management = UserManagementService(
+        database.session_factory,
+        authenticated_user.organization_id,
+        authenticated_user.id,
+        can_manage_users=authenticated_user.can("users.manage"),
+        can_read_audit=authenticated_user.can("audit.read"),
+        can_manage_settings=authenticated_user.can("settings.manage"),
+    )
     window = MainWindow(
         config,
         settings,
@@ -100,7 +113,9 @@ def run_desktop() -> int:
         fleet,
         invoices,
         reporting,
-        login.authenticated_user,
+        user_management,
+        theme_manager,
+        authenticated_user,
     )
     window.show()
     return app.exec()
