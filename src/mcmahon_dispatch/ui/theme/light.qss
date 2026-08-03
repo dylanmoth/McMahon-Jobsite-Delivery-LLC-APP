@@ -56,3 +56,16 @@ QScrollBar:vertical { background: #F3F4F6; width: 11px; margin: 0; }
 QScrollBar::handle:vertical { background: #CBD5E1; border-radius: 5px; min-height: 30px; }
 QScrollBar::handle:vertical:hover { background: #94A3B8; }
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+
+/* Quote Builder v0.5 */
+QGroupBox { background: #FFFFFF; border: 1px solid #D1D5DB; border-radius: 10px; margin-top: 13px; padding: 14px 10px 10px 10px; font-weight: 700; }
+QGroupBox::title { subcontrol-origin: margin; left: 12px; padding: 0 6px; color: #C2410C; }
+QTextEdit, QPlainTextEdit, QDoubleSpinBox, QDateTimeEdit { background: #FFFFFF; color: #111827; border: 1px solid #CBD5E1; border-radius: 6px; padding: 7px; }
+QFrame#quoteSummary, QFrame#quickNotesPanel { background: #FFFFFF; border: 1px solid #D1D5DB; border-radius: 12px; }
+QLabel#quoteNumber { color: #C2410C; font-size: 12pt; font-weight: 700; }
+QLabel#quoteTotal { color: #111827; font-size: 25pt; font-weight: 800; }
+QFrame#quoteWarning { background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 8px; }
+QFrame#quoteWarning[severity="warning"] { border-color: #F59E0B; background: #FFFBEB; }
+QFrame#quoteWarning[severity="danger"] { border-color: #EF4444; background: #FEF2F2; }
+QLabel#quoteWarningTitle { color: #111827; font-weight: 700; background: transparent; }
+QLabel#quoteWarningAction { color: #64748B; font-size: 8.5pt; background: transparent; }

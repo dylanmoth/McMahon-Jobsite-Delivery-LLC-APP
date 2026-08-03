@@ -88,3 +88,47 @@ QScrollBar:vertical { background: #0B1220; width: 11px; margin: 0; }
 QScrollBar::handle:vertical { background: #334155; border-radius: 5px; min-height: 30px; }
 QScrollBar::handle:vertical:hover { background: #475569; }
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+
+/* Quote Builder v0.5 */
+QGroupBox {
+    background: #0F172A;
+    border: 1px solid #263244;
+    border-radius: 10px;
+    margin-top: 13px;
+    padding: 14px 10px 10px 10px;
+    font-weight: 700;
+    color: #F8FAFC;
+}
+QGroupBox::title { subcontrol-origin: margin; left: 12px; padding: 0 6px; color: #F97316; }
+QTextEdit, QPlainTextEdit, QDoubleSpinBox, QDateTimeEdit {
+    background: #111827;
+    color: #E5E7EB;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    padding: 7px;
+    selection-background-color: #F97316;
+    selection-color: #111827;
+}
+QTextEdit:focus, QDoubleSpinBox:focus, QDateTimeEdit:focus { border: 2px solid #F97316; }
+QTableWidget {
+    background: #0B1220;
+    alternate-background-color: #111827;
+    border: 1px solid #263244;
+    border-radius: 8px;
+    gridline-color: #263244;
+}
+QHeaderView::section { background: #172033; color: #CBD5E1; border: none; border-bottom: 1px solid #334155; padding: 7px; font-weight: 700; }
+QFrame#quoteSummary, QFrame#quickNotesPanel { background: #111827; border: 1px solid #263244; border-radius: 12px; }
+QLabel#quoteNumber { color: #F97316; font-size: 12pt; font-weight: 700; }
+QLabel#quoteTotal { color: #FFFFFF; font-size: 25pt; font-weight: 800; }
+QFrame#quoteWarning { background: #0F172A; border: 1px solid #334155; border-radius: 8px; }
+QFrame#quoteWarning[severity="warning"] { border-color: #92400E; background: #1C1917; }
+QFrame#quoteWarning[severity="danger"] { border-color: #991B1B; background: #1F1115; }
+QLabel#quoteWarningIcon { color: #38BDF8; font-weight: 800; font-size: 13pt; background: transparent; }
+QLabel#quoteWarningIcon[severity="warning"] { color: #F59E0B; }
+QLabel#quoteWarningIcon[severity="danger"] { color: #EF4444; }
+QLabel#quoteWarningTitle { color: #F8FAFC; font-weight: 700; background: transparent; }
+QLabel#quoteWarningAction { color: #94A3B8; font-size: 8.5pt; background: transparent; }
+QSplitter::handle { background: #263244; width: 2px; }
+QToolButton { background: #1F2937; border: 1px solid #374151; border-radius: 6px; padding: 8px 12px; }
+QToolButton:checked { background: #F97316; color: #111827; border-color: #F97316; font-weight: 700; }

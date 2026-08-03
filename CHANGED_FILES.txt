@@ -1,13 +1,2 @@
-McMahon Dispatch CRM v0.4.1 changed files
-
 Modified:
-- pyproject.toml
-- src/mcmahon_dispatch/__init__.py
-- src/mcmahon_dispatch/database/models.py
-- src/mcmahon_dispatch/services/customer_service.py
-- src/mcmahon_dispatch/ui/pages/customer_page.py
-- tests/test_customer_crm.py
-
-Added:
-- migrations/versions/c5a81d2f901e_customer_operational_profile.py
-- UPDATE_INSTRUCTIONS.txt
+- src/mcmahon_dispatch/ui/pages/quote_page.py

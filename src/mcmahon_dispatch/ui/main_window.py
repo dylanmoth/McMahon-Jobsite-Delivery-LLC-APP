@@ -8,14 +8,16 @@ from mcmahon_dispatch.services.auth_service import AuthenticatedUser, Authentica
 from mcmahon_dispatch.services.dashboard_service import DashboardService
 from mcmahon_dispatch.services.customer_service import CustomerService
 from mcmahon_dispatch.services.settings_service import SettingsService
+from mcmahon_dispatch.services.quote_service import QuoteService
 from mcmahon_dispatch.ui.pages.dashboard_page import DashboardPage
 from mcmahon_dispatch.ui.pages.customer_page import CustomerPage
 from mcmahon_dispatch.ui.pages.module_page import ModulePage
+from mcmahon_dispatch.ui.pages.quote_page import QuotePage
 from mcmahon_dispatch.ui.sidebar import NAVIGATION, Sidebar
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, config: AppConfig, settings: SettingsService, auth: AuthenticationService, dashboard: DashboardService, customers: CustomerService, user: AuthenticatedUser) -> None:
+    def __init__(self, config: AppConfig, settings: SettingsService, auth: AuthenticationService, dashboard: DashboardService, customers: CustomerService, quotes: QuoteService, user: AuthenticatedUser) -> None:
         super().__init__()
         self.config=config; self.settings=settings; self.auth=auth; self.user=user
         self.setWindowTitle("McMahon Dispatch")
@@ -30,10 +32,12 @@ class MainWindow(QMainWindow):
         dashboard_page.drilldown_requested.connect(self.navigate)
         dashboard_page.quick_action_requested.connect(self._handle_quick_action)
         self.pages: dict[str, QWidget] = {"dashboard": dashboard_page}
+        if user.can("quotes.read"):
+            self.pages["quotes"] = QuotePage(quotes)
         if user.can("customers.read"):
             self.pages["customers"] = CustomerPage(customers)
         for item in NAVIGATION:
-            if item.key not in {"dashboard", "customers"} and user.can(item.permission): self.pages[item.key] = ModulePage(item.key)
+            if item.key not in {"dashboard", "quotes", "customers"} and user.can(item.permission): self.pages[item.key] = ModulePage(item.key)
         for page in self.pages.values(): self.stack.addWidget(page)
         self.sidebar.route_requested.connect(self.navigate)
         body = QWidget(); body_layout = QHBoxLayout(body); body_layout.setContentsMargins(0,0,0,0); body_layout.setSpacing(0); body_layout.addWidget(self.sidebar); body_layout.addWidget(self.stack, 1); self.setCentralWidget(body)
@@ -46,8 +50,14 @@ class MainWindow(QMainWindow):
 
     def navigate(self, key: str) -> None:
         page = self.pages.get(key)
-        if page is None: return
-        self.stack.setCurrentWidget(page); self.sidebar.set_active(key); self.settings.set("appearance.start_page", key)
+        if page is None:
+            return
+        self.stack.setCurrentWidget(page)
+        activation_handler = getattr(page, "on_activated", None)
+        if callable(activation_handler):
+            activation_handler()
+        self.sidebar.set_active(key)
+        self.settings.set("appearance.start_page", key)
 
 
     def _handle_quick_action(self, action: str) -> None:
@@ -60,6 +70,10 @@ class MainWindow(QMainWindow):
         route = route_by_action.get(action)
         if route is not None:
             self.navigate(route)
+            if action == "new_quote":
+                page = self.pages.get("quotes")
+                if isinstance(page, QuotePage):
+                    page.new_quote()
 
     def _toggle_sidebar(self) -> None:
         collapsed = not bool(self.settings.get("appearance.sidebar_collapsed", False)); self.settings.set("appearance.sidebar_collapsed", collapsed); self.sidebar.set_collapsed(collapsed)

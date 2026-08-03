@@ -692,6 +692,113 @@ class PricingVersion(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, B
     )
 
 
+class QuickCallNote(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDeleteMixin, Base):
+    __tablename__ = "quick_call_notes"
+
+    customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id", ondelete="SET NULL"))
+    quote_id: Mapped[str | None] = mapped_column(ForeignKey("quotes.id", ondelete="SET NULL"))
+    company_contact: Mapped[str] = mapped_column(String(300), default="", nullable=False)
+    phone: Mapped[str] = mapped_column(String(64), default="", nullable=False)
+    email: Mapped[str] = mapped_column(String(254), default="", nullable=False)
+    supplier_address: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    jobsite_address: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    materials: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    dimensions_text: Mapped[str] = mapped_column(String(200), default="", nullable=False)
+    weight_text: Mapped[str] = mapped_column(String(120), default="", nullable=False)
+    overweight: Mapped[bool | None] = mapped_column(Boolean)
+    pickup_stops: Mapped[int | None] = mapped_column(Integer)
+    order_ready: Mapped[bool | None] = mapped_column(Boolean)
+    same_day: Mapped[bool | None] = mapped_column(Boolean)
+    store_outside_psl: Mapped[bool | None] = mapped_column(Boolean)
+    jobsite_outside_psl: Mapped[bool | None] = mapped_column(Boolean)
+    miles_text: Mapped[str] = mapped_column(String(200), default="", nullable=False)
+    wait_text: Mapped[str] = mapped_column(String(200), default="", nullable=False)
+    trash_text: Mapped[str] = mapped_column(String(200), default="", nullable=False)
+    vehicle_text: Mapped[str] = mapped_column(String(200), default="", nullable=False)
+    other_client_scheduled: Mapped[bool | None] = mapped_column(Boolean)
+    general_notes: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    status: Mapped[str] = mapped_column(String(30), default="open", nullable=False)
+
+    __table_args__ = (
+        Index("ix_quick_call_notes_org_created", "organization_id", "created_at"),
+        Index("ix_quick_call_notes_quote", "quote_id"),
+        CheckConstraint("pickup_stops IS NULL OR pickup_stops >= 1", name="ck_quick_call_stops"),
+    )
+
+
+class QuoteIntake(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base):
+    __tablename__ = "quote_intakes"
+
+    quote_id: Mapped[str] = mapped_column(ForeignKey("quotes.id", ondelete="CASCADE"), unique=True, nullable=False)
+    customer_contact_name: Mapped[str] = mapped_column(String(240), default="", nullable=False)
+    customer_contact_phone: Mapped[str] = mapped_column(String(64), default="", nullable=False)
+    customer_contact_email: Mapped[str] = mapped_column(String(254), default="", nullable=False)
+    supplier_name: Mapped[str] = mapped_column(String(240), default="", nullable=False)
+    supplier_address: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    supplier_contact: Mapped[str] = mapped_column(String(240), default="", nullable=False)
+    order_number: Mapped[str] = mapped_column(String(100), default="", nullable=False)
+    order_paid: Mapped[bool | None] = mapped_column(Boolean)
+    order_ready: Mapped[bool | None] = mapped_column(Boolean)
+    pickup_authorization: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    pickup_instructions: Mapped[str] = mapped_column(Text, default="", nullable=False)
+
+    jobsite_address: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    site_contact: Mapped[str] = mapped_column(String(240), default="", nullable=False)
+    access_instructions: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    delivery_window: Mapped[str] = mapped_column(String(240), default="", nullable=False)
+
+    materials: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    quantity: Mapped[Decimal] = mapped_column(Numeric(12, 3), default=1, nullable=False)
+    length_inches: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
+    width_inches: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
+    height_inches: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
+    weight_pounds: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))
+    overweight: Mapped[bool | None] = mapped_column(Boolean)
+    hazardous: Mapped[bool | None] = mapped_column(Boolean, default=False)
+    prohibited_reason: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    estimated_hours: Mapped[Decimal | None] = mapped_column(Numeric(8, 2))
+
+    store_inside_psl: Mapped[bool | None] = mapped_column(Boolean)
+    jobsite_inside_psl: Mapped[bool | None] = mapped_column(Boolean)
+    boundary_to_store_miles: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
+    store_to_jobsite_miles: Mapped[Decimal | None] = mapped_column(Numeric(10, 2))
+    pickup_stops: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+
+    same_day: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    other_client_affected: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    wait_minutes: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    delay_sequence: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+    loading_minutes: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    trash_bag_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    trash_contents_identified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    cancelled_after_dispatch: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    tolls_cents: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    tolls_pass_through: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    parking_cents: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    parking_pass_through: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    rental_cost_cents: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    rental_pass_through: Mapped[bool | None] = mapped_column(Boolean)
+    rental_markup_cents: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    fuel_cost_cents: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    helper_cost_cents: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    securement_cost_cents: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    processing_fee_cents: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    other_direct_cost_cents: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    manual_adjustment_cents: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    manual_adjustment_reason: Mapped[str] = mapped_column(Text, default="", nullable=False)
+
+    __table_args__ = (
+        Index("ix_quote_intakes_org_quote", "organization_id", "quote_id"),
+        CheckConstraint("quantity > 0", name="ck_quote_intake_quantity"),
+        CheckConstraint("pickup_stops >= 1", name="ck_quote_intake_stops"),
+        CheckConstraint("wait_minutes >= 0", name="ck_quote_intake_wait"),
+        CheckConstraint("delay_sequence >= 1", name="ck_quote_intake_delay_sequence"),
+        CheckConstraint("loading_minutes >= 0", name="ck_quote_intake_loading"),
+        CheckConstraint("trash_bag_count >= 0", name="ck_quote_intake_trash"),
+    )
+
+
 class Quote(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDeleteMixin, Base):
     __tablename__ = "quotes"
 
@@ -725,6 +832,8 @@ class Quote(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDelete
     revisions: Mapped[list[QuoteRevision]] = relationship(
         back_populates="quote", cascade="all, delete-orphan", order_by="QuoteRevision.revision_number"
     )
+    intake: Mapped[QuoteIntake | None] = relationship(cascade="all, delete-orphan", uselist=False)
+    quick_notes: Mapped[list[QuickCallNote]] = relationship(cascade="save-update, merge", foreign_keys="QuickCallNote.quote_id")
     jobs: Mapped[list[Job]] = relationship(back_populates="source_quote")
 
     __table_args__ = (

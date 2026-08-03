@@ -14,6 +14,7 @@ from mcmahon_dispatch.services.auth_service import AuthenticationService
 from mcmahon_dispatch.services.dashboard_service import DashboardService
 from mcmahon_dispatch.services.customer_service import CustomerService
 from mcmahon_dispatch.services.settings_service import SettingsService
+from mcmahon_dispatch.services.quote_service import QuoteService
 from mcmahon_dispatch.ui.auth.first_run_dialog import FirstRunAdminDialog
 from mcmahon_dispatch.ui.auth.login_dialog import LoginDialog
 from mcmahon_dispatch.ui.main_window import MainWindow
@@ -53,6 +54,15 @@ def run_desktop() -> int:
 
     dashboard = DashboardService(database.session_factory)
     customers = CustomerService(database.session_factory, login.authenticated_user.organization_id, login.authenticated_user.id)
-    window = MainWindow(config, settings, auth, dashboard, customers, login.authenticated_user)
+    quotes = QuoteService(
+        database.session_factory,
+        login.authenticated_user.organization_id,
+        login.authenticated_user.id,
+        config.paths.documents,
+        Path(__file__).parent / "assets" / "images" / "mcmahon_dispatch_logo.png",
+        can_override_price=login.authenticated_user.can("quotes.override_price"),
+        can_write=login.authenticated_user.can("quotes.write"),
+    )
+    window = MainWindow(config, settings, auth, dashboard, customers, quotes, login.authenticated_user)
     window.show()
     return app.exec()

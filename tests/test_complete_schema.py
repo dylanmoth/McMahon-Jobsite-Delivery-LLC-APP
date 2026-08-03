@@ -25,7 +25,7 @@ EXPECTED_TABLES = {
     "customer_preferred_suppliers", "suppliers",
     "supplier_locations", "supplier_contacts", "supplier_business_hours", "drivers",
     "driver_shifts", "vehicles", "vehicle_availability", "pricing_versions", "quotes",
-    "quote_revisions", "quote_stops", "quote_loads", "quote_charges", "jobs", "job_stops",
+    "quote_revisions", "quote_stops", "quote_loads", "quote_charges", "quote_intakes", "quick_call_notes", "jobs", "job_stops",
     "job_assignments", "job_status_events", "wait_events", "dispatch_messages", "invoices",
     "invoice_lines", "payments", "payment_allocations", "expense_categories", "expenses",
     "maintenance_records", "fuel_entries", "documents", "document_links", "signatures",

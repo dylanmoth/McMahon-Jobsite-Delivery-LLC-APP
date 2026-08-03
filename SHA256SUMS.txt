@@ -1,0 +1,1 @@
+6a9a4e027df7ce66ca15c8dfd589bc423cafffc008587447ae8a1fdde605fad1  src/mcmahon_dispatch/ui/pages/quote_page.py

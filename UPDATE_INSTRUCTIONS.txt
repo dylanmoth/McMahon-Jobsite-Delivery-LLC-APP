@@ -1,14 +1,9 @@
-McMahon Dispatch CRM v0.4.2
+McMahon Dispatch Quote Builder v0.5.1.1 Resize Hotfix
 
 1. Close McMahon Dispatch.
-2. Back up the current McMahonDispatch folder.
-3. Copy everything inside this patch folder into the existing McMahonDispatch folder.
-4. Choose "Replace the files in the destination" when prompted.
-5. Run:
+2. Copy the src folder from this patch into the McMahonDispatch project root.
+3. Choose Replace the files in the destination.
+4. No migration or dependency installation is required.
+5. Run: .\.venv\Scripts\python.exe -m mcmahon_dispatch
 
-cd "C:\Users\thedy\OneDrive\Desktop\MJD BUSINESS\McMahonDispatch"
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-.\.venv\Scripts\python.exe -m pytest
-.\.venv\Scripts\python.exe -m mcmahon_dispatch
-
-No Alembic migration is required for this patch.
+Fix: Renames quote dimension widgets from self.width/self.height to self.load_width/self.load_height so they no longer shadow QWidget.width() and QWidget.height().
