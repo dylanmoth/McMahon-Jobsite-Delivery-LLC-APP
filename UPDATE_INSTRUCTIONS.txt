@@ -1,16 +1,14 @@
-McMahon Dispatch CRM v0.4.1 - Customer Intake Redesign
-
-This patch updates only the Customer CRM files and adds one database migration.
+McMahon Dispatch CRM v0.4.2
 
 1. Close McMahon Dispatch.
-2. Back up the McMahonDispatch project folder.
-3. Copy this patch's contents into the existing McMahonDispatch folder.
-4. Choose Replace files in the destination.
+2. Back up the current McMahonDispatch folder.
+3. Copy everything inside this patch folder into the existing McMahonDispatch folder.
+4. Choose "Replace the files in the destination" when prompted.
 5. Run:
 
-   .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-   .\.venv\Scripts\python.exe -m alembic upgrade head
-   .\.venv\Scripts\python.exe -m pytest
-   .\.venv\Scripts\python.exe -m mcmahon_dispatch
+cd "C:\Users\thedy\OneDrive\Desktop\MJD BUSINESS\McMahonDispatch"
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m pytest
+.\.venv\Scripts\python.exe -m mcmahon_dispatch
 
-The migration preserves existing customers and administrator accounts.
+No Alembic migration is required for this patch.

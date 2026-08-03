@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.2 - 2026-08-03
+
+- Added reversible customer archiving and restoration.
+- Added protected customer deletion with linked-record assessment.
+- Added customer duplication including profile, contacts, addresses, and preferred suppliers.
+- Added customer merge preview and transactional merge of quotes, jobs, invoices, payments, documents, notes, contacts, addresses, and preferred suppliers.
+- Added customer-list action toolbar, right-click actions, active/archived/all views, richer search, sortable columns, and archived-row styling.
+- Added automated CRM tests for archive, restore, delete, duplicate, and merge workflows.
+
 ## 0.2.0 - 2026-08-03
 
 - Replaced the foundation-only schema with the complete normalized operational schema.

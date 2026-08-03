@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from PySide6.QtCore import QItemSelection, QTimer, Qt, Signal
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QAction, QColor
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QCheckBox,
@@ -18,9 +18,11 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QHeaderView,
     QLabel,
+    QInputDialog,
     QLineEdit,
     QListWidget,
     QListWidgetItem,
+    QMenu,
     QMessageBox,
     QPushButton,
     QScrollArea,
@@ -564,46 +566,402 @@ class CustomerDetail(QWidget):
 
 class CustomerPage(QWidget):
     def __init__(self, service: CustomerService) -> None:
-        super().__init__();self.service=service;self._customers=[]
-        root=QVBoxLayout(self);root.setContentsMargins(0,0,0,0)
-        top=QFrame();top.setObjectName("pageHeader");tl=QHBoxLayout(top);title=QLabel("Customers");title.setObjectName("pageTitle");tl.addWidget(title);tl.addStretch();new=QPushButton("New Customer");new.setObjectName("primaryButton");new.clicked.connect(self._new);tl.addWidget(new);root.addWidget(top)
-        splitter=QSplitter();splitter.setChildrenCollapsible(False);root.addWidget(splitter,1)
-        left=QWidget();left.setMinimumWidth(320);left.setMaximumWidth(480);ll=QVBoxLayout(left);ll.setContentsMargins(18,18,12,18)
-        self.search=QLineEdit();self.search.setPlaceholderText("Search company, contact, phone, email, address, quote, or invoice…");self.search.setClearButtonEnabled(True)
-        filters=QHBoxLayout();self.status_filter=QComboBox();self.status_filter.addItem("All statuses",None)
-        for status in CustomerStatus:self.status_filter.addItem(status.value.replace("_"," ").title(),status.value)
-        self.balance_filter=QComboBox();self.balance_filter.addItem("All balances",None);self.balance_filter.addItem("Outstanding only",True);self.balance_filter.addItem("No outstanding",False)
-        filters.addWidget(self.status_filter);filters.addWidget(self.balance_filter)
-        self.table=QTableWidget(0,4);self.table.setHorizontalHeaderLabels(["Customer","Status","Contact","Balance"]);self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows);self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers);self.table.verticalHeader().setVisible(False);self.table.horizontalHeader().setSectionResizeMode(0,QHeaderView.ResizeMode.Stretch);self.table.horizontalHeader().setSectionResizeMode(1,QHeaderView.ResizeMode.ResizeToContents);self.table.horizontalHeader().setSectionResizeMode(2,QHeaderView.ResizeMode.ResizeToContents);self.table.horizontalHeader().setSectionResizeMode(3,QHeaderView.ResizeMode.ResizeToContents)
-        ll.addWidget(self.search);ll.addLayout(filters);ll.addWidget(self.table,1);splitter.addWidget(left)
-        self.detail=CustomerDetail(service);self.detail.edit_requested.connect(self._edit);self.detail.data_changed.connect(self.refresh);splitter.addWidget(self.detail);splitter.setStretchFactor(1,1);splitter.setSizes([390,1000])
-        self.search.textChanged.connect(self._schedule);self.status_filter.currentIndexChanged.connect(self.refresh);self.balance_filter.currentIndexChanged.connect(self.refresh);self.table.itemSelectionChanged.connect(self._selected)
-        self.timer=QTimer(self);self.timer.setSingleShot(True);self.timer.setInterval(250);self.timer.timeout.connect(self.refresh);self.refresh()
+        super().__init__()
+        self.service = service
+        self._customers: list[Customer] = []
 
-    def _schedule(self):self.timer.start()
-    def refresh(self):
-        current=self.detail.customer_id
-        statuses=[self.status_filter.currentData()] if self.status_filter.currentData() else None
-        self._customers=self.service.search(self.search.text(),statuses,has_outstanding=self.balance_filter.currentData())
+        root = QVBoxLayout(self)
+        root.setContentsMargins(0, 0, 0, 0)
+
+        top = QFrame()
+        top.setObjectName("pageHeader")
+        top_layout = QHBoxLayout(top)
+        title = QLabel("Customers")
+        title.setObjectName("pageTitle")
+        top_layout.addWidget(title)
+        top_layout.addStretch()
+
+        self.new_button = QPushButton("New Customer")
+        self.new_button.setObjectName("primaryButton")
+        self.edit_button = QPushButton("Edit")
+        self.duplicate_button = QPushButton("Duplicate")
+        self.archive_button = QPushButton("Archive")
+        self.delete_button = QPushButton("Delete")
+        self.delete_button.setObjectName("dangerButton")
+        for button in (
+            self.new_button,
+            self.edit_button,
+            self.duplicate_button,
+            self.archive_button,
+            self.delete_button,
+        ):
+            top_layout.addWidget(button)
+        root.addWidget(top)
+
+        splitter = QSplitter()
+        splitter.setChildrenCollapsible(False)
+        root.addWidget(splitter, 1)
+
+        left = QWidget()
+        left.setMinimumWidth(360)
+        left.setMaximumWidth(560)
+        left_layout = QVBoxLayout(left)
+        left_layout.setContentsMargins(18, 18, 12, 18)
+        left_layout.setSpacing(10)
+
+        self.search = QLineEdit()
+        self.search.setPlaceholderText(
+            "Search company, contact, phone, email, address, notes, quote, or invoice…"
+        )
+        self.search.setClearButtonEnabled(True)
+
+        filters = QHBoxLayout()
+        self.view_filter = QComboBox()
+        self.view_filter.addItem("Active customers", "active")
+        self.view_filter.addItem("Archived customers", "archived")
+        self.view_filter.addItem("All customers", "all")
+        self.status_filter = QComboBox()
+        self.status_filter.addItem("All statuses", None)
+        for status in CustomerStatus:
+            self.status_filter.addItem(status.value.replace("_", " ").title(), status.value)
+        self.balance_filter = QComboBox()
+        self.balance_filter.addItem("All balances", None)
+        self.balance_filter.addItem("Outstanding only", True)
+        self.balance_filter.addItem("No outstanding", False)
+        filters.addWidget(self.view_filter)
+        filters.addWidget(self.status_filter)
+        filters.addWidget(self.balance_filter)
+
+        self.table = QTableWidget(0, 5)
+        self.table.setHorizontalHeaderLabels(
+            ["Customer", "Status", "Contact", "Phone / Email", "Balance"]
+        )
+        self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.table.setAlternatingRowColors(True)
+        self.table.setSortingEnabled(True)
+        self.table.verticalHeader().setVisible(False)
+        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        for column in range(1, 5):
+            self.table.horizontalHeader().setSectionResizeMode(
+                column, QHeaderView.ResizeMode.ResizeToContents
+            )
+
+        left_layout.addWidget(self.search)
+        left_layout.addLayout(filters)
+        left_layout.addWidget(self.table, 1)
+        splitter.addWidget(left)
+
+        self.detail = CustomerDetail(service)
+        self.detail.edit_requested.connect(self._edit)
+        self.detail.data_changed.connect(self.refresh)
+        splitter.addWidget(self.detail)
+        splitter.setStretchFactor(1, 1)
+        splitter.setSizes([440, 1000])
+
+        self.search.textChanged.connect(self._schedule)
+        self.view_filter.currentIndexChanged.connect(self.refresh)
+        self.status_filter.currentIndexChanged.connect(self.refresh)
+        self.balance_filter.currentIndexChanged.connect(self.refresh)
+        self.table.itemSelectionChanged.connect(self._selected)
+        self.table.itemDoubleClicked.connect(lambda _item: self._edit_selected())
+        self.table.customContextMenuRequested.connect(self._show_context_menu)
+
+        self.new_button.clicked.connect(self._new)
+        self.edit_button.clicked.connect(self._edit_selected)
+        self.duplicate_button.clicked.connect(self._duplicate_selected)
+        self.archive_button.clicked.connect(self._archive_or_restore_selected)
+        self.delete_button.clicked.connect(self._delete_selected)
+
+        self.timer = QTimer(self)
+        self.timer.setSingleShot(True)
+        self.timer.setInterval(250)
+        self.timer.timeout.connect(self.refresh)
+        self.refresh()
+
+    def _schedule(self) -> None:
+        self.timer.start()
+
+    def _selected_customer_id(self) -> str | None:
+        row = self.table.currentRow()
+        if row < 0:
+            return None
+        item = self.table.item(row, 0)
+        if item is None:
+            return None
+        value = item.data(Qt.ItemDataRole.UserRole)
+        return str(value) if value else None
+
+    def _selected_customer(self) -> Customer | None:
+        customer_id = self._selected_customer_id()
+        return next((item for item in self._customers if item.id == customer_id), None)
+
+    def _update_actions(self) -> None:
+        customer = self._selected_customer()
+        enabled = customer is not None
+        self.edit_button.setEnabled(enabled)
+        self.duplicate_button.setEnabled(enabled)
+        self.archive_button.setEnabled(enabled)
+        self.delete_button.setEnabled(enabled)
+        if customer is None:
+            self.archive_button.setText("Archive")
+        elif customer.status == "archived":
+            self.archive_button.setText("Restore")
+        else:
+            self.archive_button.setText("Archive")
+
+    def refresh(self) -> None:
+        current = self._selected_customer_id() or self.detail.customer_id
+        statuses = [self.status_filter.currentData()] if self.status_filter.currentData() else None
+        view = str(self.view_filter.currentData())
+        self._customers = self.service.search(
+            self.search.text(),
+            statuses,
+            has_outstanding=self.balance_filter.currentData(),
+            include_archived=view == "all",
+            only_archived=view == "archived",
+        )
+
+        self.table.setSortingEnabled(False)
         self.table.setRowCount(0)
         for customer in self._customers:
-            r=self.table.rowCount();self.table.insertRow(r);primary=next((x.contact for x in customer.contacts if x.is_primary),customer.contacts[0].contact if customer.contacts else None);contact=(primary.mobile or primary.phone or primary.email or "") if primary else ""
-            add_cell(self.table,r,0,customer.company_name,customer.id);add_cell(self.table,r,1,customer.status.replace("_"," ").title());add_cell(self.table,r,2,contact);add_cell(self.table,r,3,"")
-            if customer.id==current:self.table.selectRow(r)
-        if current and any(c.id==current for c in self._customers):self.detail.load(current)
-        elif self._customers:self.table.selectRow(0)
-    def _selected(self):
-        row=self.table.currentRow()
-        if row>=0 and self.table.item(row,0):self.detail.load(str(self.table.item(row,0).data(Qt.ItemDataRole.UserRole)))
-    def _new(self):
-        d=CustomerEditorDialog(parent=self)
-        if d.exec()==QDialog.DialogCode.Accepted:
-            try:cid=self.service.save(d.request());self.refresh();self.detail.load(cid)
-            except ValidationError as exc:QMessageBox.warning(self,"Customer",str(exc))
-    def _edit(self,customer_id:str):
-        try:customer,*_=self.service.load(customer_id)
-        except ValidationError as exc:QMessageBox.warning(self,"Customer",str(exc));return
-        d=CustomerEditorDialog(customer,self)
-        if d.exec()==QDialog.DialogCode.Accepted:
-            try:self.service.save(d.request(),customer_id);self.refresh();self.detail.load(customer_id)
-            except ValidationError as exc:QMessageBox.warning(self,"Customer",str(exc))
+            row = self.table.rowCount()
+            self.table.insertRow(row)
+            primary = next(
+                (link.contact for link in customer.contacts if link.is_primary),
+                customer.contacts[0].contact if customer.contacts else None,
+            )
+            contact_name = (
+                f"{primary.first_name} {primary.last_name or ''}".strip() if primary else ""
+            )
+            contact_method = (
+                primary.mobile or primary.phone or primary.email or "" if primary else ""
+            )
+            add_cell(self.table, row, 0, customer.company_name, customer.id)
+            add_cell(self.table, row, 1, customer.status.replace("_", " ").title())
+            add_cell(self.table, row, 2, contact_name)
+            add_cell(self.table, row, 3, contact_method)
+            add_cell(self.table, row, 4, "")
+            if customer.status == "archived":
+                for column in range(self.table.columnCount()):
+                    item = self.table.item(row, column)
+                    if item:
+                        item.setForeground(QColor("#9CA3AF"))
+            if customer.id == current:
+                self.table.selectRow(row)
+        self.table.setSortingEnabled(True)
+
+        if current and any(customer.id == current for customer in self._customers):
+            self.detail.load(current)
+        elif self._customers:
+            self.table.selectRow(0)
+        else:
+            self.detail.customer_id = None
+            self.detail.setEnabled(False)
+        self._update_actions()
+
+    def _selected(self) -> None:
+        customer_id = self._selected_customer_id()
+        if customer_id:
+            self.detail.load(customer_id)
+        self._update_actions()
+
+    def _new(self) -> None:
+        dialog = CustomerEditorDialog(parent=self)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        try:
+            customer_id = self.service.save(dialog.request())
+            self.refresh()
+            self.detail.load(customer_id)
+        except ValidationError as exc:
+            QMessageBox.warning(self, "Customer", str(exc))
+
+    def _edit_selected(self) -> None:
+        customer_id = self._selected_customer_id()
+        if customer_id:
+            self._edit(customer_id)
+
+    def _edit(self, customer_id: str) -> None:
+        try:
+            customer, *_ = self.service.load(customer_id)
+        except ValidationError as exc:
+            QMessageBox.warning(self, "Customer", str(exc))
+            return
+        dialog = CustomerEditorDialog(customer, self)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        try:
+            self.service.save(dialog.request(), customer_id)
+            self.refresh()
+            self.detail.load(customer_id)
+        except ValidationError as exc:
+            QMessageBox.warning(self, "Customer", str(exc))
+
+    def _archive_or_restore_selected(self) -> None:
+        customer = self._selected_customer()
+        if customer is None:
+            return
+        try:
+            if customer.status == "archived":
+                if QMessageBox.question(
+                    self,
+                    "Restore customer",
+                    f"Restore {customer.company_name} to Active customers?",
+                ) == QMessageBox.StandardButton.Yes:
+                    self.service.restore(customer.id)
+            else:
+                if QMessageBox.question(
+                    self,
+                    "Archive customer",
+                    f"Archive {customer.company_name}?\n\n"
+                    "All quotes, jobs, invoices, documents, and history will be preserved.",
+                ) == QMessageBox.StandardButton.Yes:
+                    self.service.archive(customer.id)
+            self.refresh()
+        except ValidationError as exc:
+            QMessageBox.warning(self, "Customer", str(exc))
+
+    def _delete_selected(self) -> None:
+        customer = self._selected_customer()
+        if customer is None:
+            return
+        try:
+            assessment = self.service.delete_assessment(customer.id)
+        except ValidationError as exc:
+            QMessageBox.warning(self, "Customer", str(exc))
+            return
+        if not assessment.can_delete:
+            QMessageBox.information(
+                self,
+                "Archive required",
+                f"{customer.company_name} cannot be deleted because it has "
+                f"{', '.join(assessment.blockers)}.\n\n"
+                "Archive the customer instead so historical business records remain intact.",
+            )
+            return
+        answer = QMessageBox.warning(
+            self,
+            "Delete customer",
+            f"Delete {customer.company_name}?\n\n"
+            "This customer has no linked quotes, jobs, invoices, payments, or documents. "
+            "The deletion will still be retained in the audit history.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
+            QMessageBox.StandardButton.Cancel,
+        )
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            self.service.delete(customer.id)
+            self.refresh()
+        except ValidationError as exc:
+            QMessageBox.warning(self, "Customer", str(exc))
+
+    def _duplicate_selected(self) -> None:
+        customer = self._selected_customer()
+        if customer is None:
+            return
+        name, accepted = QInputDialog.getText(
+            self,
+            "Duplicate customer",
+            "New company / branch name:",
+            text=f"{customer.company_name} - Copy",
+        )
+        if not accepted:
+            return
+        try:
+            duplicate_id = self.service.duplicate(customer.id, name)
+            self.view_filter.setCurrentIndex(0)
+            self.refresh()
+            for row in range(self.table.rowCount()):
+                item = self.table.item(row, 0)
+                if item and item.data(Qt.ItemDataRole.UserRole) == duplicate_id:
+                    self.table.selectRow(row)
+                    break
+        except ValidationError as exc:
+            QMessageBox.warning(self, "Customer", str(exc))
+
+    def _merge_selected(self) -> None:
+        source = self._selected_customer()
+        if source is None:
+            return
+        candidates = [customer for customer in self._customers if customer.id != source.id]
+        if not candidates:
+            QMessageBox.information(
+                self, "Merge customers", "No other customer is available in the current view."
+            )
+            return
+        labels = [f"{customer.company_name} ({customer.customer_number})" for customer in candidates]
+        selected_label, accepted = QInputDialog.getItem(
+            self,
+            "Merge customers",
+            f"Move all history from {source.company_name} into:",
+            labels,
+            0,
+            False,
+        )
+        if not accepted:
+            return
+        target = candidates[labels.index(selected_label)]
+        try:
+            preview = self.service.merge_preview(source.id, target.id)
+        except ValidationError as exc:
+            QMessageBox.warning(self, "Merge customers", str(exc))
+            return
+        answer = QMessageBox.warning(
+            self,
+            "Confirm customer merge",
+            f"Merge {preview.source_name} into {preview.target_name}?\n\n"
+            f"Source: {preview.source_statistics.quote_count} quotes, "
+            f"{preview.source_statistics.job_count} jobs, "
+            f"{preview.source_statistics.invoice_count} invoices.\n"
+            f"Target: {preview.target_statistics.quote_count} quotes, "
+            f"{preview.target_statistics.job_count} jobs, "
+            f"{preview.target_statistics.invoice_count} invoices.\n\n"
+            "Operational history will move to the target customer. The source profile will be archived.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
+            QMessageBox.StandardButton.Cancel,
+        )
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            target_id = self.service.merge(source.id, target.id)
+            self.refresh()
+            self.detail.load(target_id)
+        except ValidationError as exc:
+            QMessageBox.warning(self, "Merge customers", str(exc))
+
+    def _show_context_menu(self, position) -> None:
+        index = self.table.indexAt(position)
+        if index.isValid():
+            self.table.selectRow(index.row())
+        customer = self._selected_customer()
+        if customer is None:
+            return
+        menu = QMenu(self)
+        open_action = QAction("Open", menu)
+        edit_action = QAction("Edit", menu)
+        duplicate_action = QAction("Duplicate", menu)
+        merge_action = QAction("Merge into another customer…", menu)
+        archive_action = QAction(
+            "Restore" if customer.status == "archived" else "Archive", menu
+        )
+        delete_action = QAction("Delete", menu)
+        open_action.triggered.connect(self._selected)
+        edit_action.triggered.connect(self._edit_selected)
+        duplicate_action.triggered.connect(self._duplicate_selected)
+        merge_action.triggered.connect(self._merge_selected)
+        archive_action.triggered.connect(self._archive_or_restore_selected)
+        delete_action.triggered.connect(self._delete_selected)
+        menu.addAction(open_action)
+        menu.addAction(edit_action)
+        menu.addSeparator()
+        menu.addAction(duplicate_action)
+        menu.addAction(merge_action)
+        menu.addSeparator()
+        menu.addAction(archive_action)
+        menu.addAction(delete_action)
+        menu.exec(self.table.viewport().mapToGlobal(position))
+
