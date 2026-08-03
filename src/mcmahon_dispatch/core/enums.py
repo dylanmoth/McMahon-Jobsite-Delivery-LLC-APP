@@ -80,6 +80,9 @@ class DriverStatus(StrEnum):
     AVAILABLE = "available"
     ON_DUTY = "on_duty"
     ASSIGNED = "assigned"
+    ON_JOB = "on_job"
+    OFF_DUTY = "off_duty"
+    TIME_OFF = "time_off"
     UNAVAILABLE = "unavailable"
     INACTIVE = "inactive"
 

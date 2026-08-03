@@ -1,2 +1,13 @@
-Modified:
-- src/mcmahon_dispatch/ui/pages/quote_page.py
+Modified files:
+- src/mcmahon_dispatch/ui/main_window.py
+- src/mcmahon_dispatch/ui/sidebar.py
+- src/mcmahon_dispatch/ui/pages/dispatch_page.py
+- src/mcmahon_dispatch/ui/theme/dark.qss
+- src/mcmahon_dispatch/ui/theme/light.qss
+- src/mcmahon_dispatch/__init__.py
+- pyproject.toml
+- CHANGELOG.md
+
+No files deleted.
+No database migration required.
+No new dependencies required.

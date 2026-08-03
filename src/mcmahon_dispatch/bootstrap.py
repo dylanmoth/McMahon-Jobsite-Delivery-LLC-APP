@@ -12,6 +12,7 @@ from mcmahon_dispatch.database.engine import Database
 from mcmahon_dispatch.database.seed import seed_foundation_data
 from mcmahon_dispatch.services.auth_service import AuthenticationService
 from mcmahon_dispatch.services.dashboard_service import DashboardService
+from mcmahon_dispatch.services.dispatch_service import DispatchService
 from mcmahon_dispatch.services.customer_service import CustomerService
 from mcmahon_dispatch.services.settings_service import SettingsService
 from mcmahon_dispatch.services.quote_service import QuoteService
@@ -63,6 +64,22 @@ def run_desktop() -> int:
         can_override_price=login.authenticated_user.can("quotes.override_price"),
         can_write=login.authenticated_user.can("quotes.write"),
     )
-    window = MainWindow(config, settings, auth, dashboard, customers, quotes, login.authenticated_user)
+    dispatch = DispatchService(
+        database.session_factory,
+        login.authenticated_user.organization_id,
+        login.authenticated_user.id,
+        can_manage=login.authenticated_user.can("dispatch.manage"),
+        can_view_financials=login.authenticated_user.can("reports.financial"),
+    )
+    window = MainWindow(
+        config,
+        settings,
+        auth,
+        dashboard,
+        customers,
+        quotes,
+        dispatch,
+        login.authenticated_user,
+    )
     window.show()
     return app.exec()

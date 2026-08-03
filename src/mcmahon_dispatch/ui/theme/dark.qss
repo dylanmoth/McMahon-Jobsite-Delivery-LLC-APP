@@ -132,3 +132,66 @@ QLabel#quoteWarningAction { color: #94A3B8; font-size: 8.5pt; background: transp
 QSplitter::handle { background: #263244; width: 2px; }
 QToolButton { background: #1F2937; border: 1px solid #374151; border-radius: 6px; padding: 8px 12px; }
 QToolButton:checked { background: #F97316; color: #111827; border-color: #F97316; font-weight: 700; }
+
+/* Dispatch Center v0.6 */
+QWidget#dispatchPage { background: #0B1220; }
+QFrame#dispatchMetric { background: #111827; border: 1px solid #263244; border-radius: 10px; }
+QLabel#dispatchMetricValue { color: #FFFFFF; font-size: 18pt; font-weight: 800; background: transparent; }
+QLabel#dispatchMetricLabel { color: #94A3B8; font-size: 8.5pt; font-weight: 600; background: transparent; }
+QFrame#kanbanLane { background: #0F172A; border: 1px solid #263244; border-radius: 11px; }
+QLabel#kanbanTitle { color: #F8FAFC; font-size: 11pt; font-weight: 750; background: transparent; }
+QLabel#kanbanCount { color: #F97316; background: #1F2937; border: 1px solid #374151; border-radius: 10px; padding: 2px 7px; font-weight: 700; }
+QFrame#dispatchJobCard { background: #111827; border: 1px solid #334155; border-left: 4px solid #64748B; border-radius: 9px; }
+QFrame#dispatchJobCard:hover { border-color: #F97316; background: #172033; }
+QFrame#dispatchJobCard[priority="high"] { border-left-color: #F59E0B; }
+QFrame#dispatchJobCard[priority="urgent"] { border-left-color: #EF4444; }
+QFrame#dispatchJobCard[priority="low"] { border-left-color: #38BDF8; }
+QLabel#dispatchJobNumber { color: #F97316; font-size: 8.5pt; font-weight: 800; background: transparent; }
+QLabel#dispatchPriority { color: #CBD5E1; font-size: 7.5pt; font-weight: 800; background: #1F2937; border-radius: 6px; padding: 2px 5px; }
+QLabel#dispatchPriority[priority="urgent"] { color: #FCA5A5; background: #3F1518; }
+QLabel#dispatchPriority[priority="high"] { color: #FCD34D; background: #3A2A0C; }
+QLabel#dispatchCustomer { color: #F8FAFC; font-size: 10.5pt; font-weight: 750; background: transparent; }
+QLabel#dispatchRoute, QLabel#dispatchSchedule, QLabel#dispatchAssignment { color: #94A3B8; font-size: 8.5pt; background: transparent; }
+QLabel#dispatchAmount { color: #E2E8F0; font-weight: 700; background: transparent; }
+QLabel#dispatchAlertCount { color: #64748B; font-size: 8pt; background: transparent; }
+QLabel#dispatchAlertCount[hasAlerts="true"] { color: #F59E0B; font-weight: 700; }
+QFrame#dispatchDetail { background: #111827; border: 1px solid #263244; border-radius: 12px; }
+QLabel#sectionTitle { color: #CBD5E1; font-weight: 700; font-size: 9pt; background: transparent; }
+QFrame#calendarLane { background: #0F172A; border: 1px solid #263244; border-radius: 10px; }
+QLabel#calendarLaneTitle { color: #E2E8F0; font-weight: 750; font-size: 10pt; background: transparent; }
+QLabel#calendarPeriod { color: #F8FAFC; font-weight: 750; font-size: 11pt; padding-left: 8px; }
+QLabel#statusTransition { color: #F97316; font-size: 16pt; font-weight: 800; padding: 12px; }
+QTabWidget::pane { border: 1px solid #263244; border-radius: 9px; background: #0B1220; }
+QTabBar::tab { background: #111827; color: #94A3B8; border: 1px solid #263244; padding: 9px 15px; }
+QTabBar::tab:selected { color: #F97316; background: #172033; border-bottom: 2px solid #F97316; }
+QCalendarWidget QWidget { alternate-background-color: #111827; }
+QCalendarWidget QAbstractItemView:enabled { background: #0F172A; color: #E5E7EB; selection-background-color: #F97316; selection-color: #111827; }
+
+/* Navigation accessibility v0.6.1 */
+QFrame#topNavigationBar {
+    background: #111827;
+    border-bottom: 1px solid #263244;
+}
+QPushButton#navigationToggle {
+    background: #1F2937;
+    color: #F8FAFC;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    font-size: 16pt;
+    font-weight: 700;
+    padding: 0;
+}
+QPushButton#navigationToggle:hover {
+    background: #F97316;
+    color: #111827;
+    border-color: #F97316;
+}
+QPushButton#navigationToggle:pressed {
+    background: #EA580C;
+}
+QLabel#sectionTitle {
+    color: #F8FAFC;
+    font-size: 12pt;
+    font-weight: 750;
+    background: transparent;
+}

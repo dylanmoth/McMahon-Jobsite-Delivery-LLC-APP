@@ -1,9 +1,19 @@
-McMahon Dispatch Quote Builder v0.5.1.1 Resize Hotfix
+McMahon Dispatch v0.6.1 Navigation & Terminology Patch
 
 1. Close McMahon Dispatch.
-2. Copy the src folder from this patch into the McMahonDispatch project root.
-3. Choose Replace the files in the destination.
-4. No migration or dependency installation is required.
-5. Run: .\.venv\Scripts\python.exe -m mcmahon_dispatch
+2. Back up the current McMahonDispatch project folder.
+3. Copy everything inside this patch folder into the project root:
+   C:\Users\thedy\OneDrive\Desktop\MJD BUSINESS\McMahonDispatch
+4. Choose "Replace the files in the destination" when prompted.
+5. Run:
+   .\.venv\Scripts\python.exe -m pytest
+   .\.venv\Scripts\python.exe -m mcmahon_dispatch
 
-Fix: Renames quote dimension widgets from self.width/self.height to self.load_width/self.load_height so they no longer shadow QWidget.width() and QWidget.height().
+No Alembic migration is required.
+No dependency reinstall is required.
+
+Visible changes:
+- An always-visible navigation button appears in the top-left application bar.
+- Ctrl+B shows or hides navigation.
+- The Dispatch tab previously labeled "Kanban" is now labeled "Job Board".
+- The customer module remains labeled "Customers".

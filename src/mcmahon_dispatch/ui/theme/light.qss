@@ -69,3 +69,65 @@ QFrame#quoteWarning[severity="warning"] { border-color: #F59E0B; background: #FF
 QFrame#quoteWarning[severity="danger"] { border-color: #EF4444; background: #FEF2F2; }
 QLabel#quoteWarningTitle { color: #111827; font-weight: 700; background: transparent; }
 QLabel#quoteWarningAction { color: #64748B; font-size: 8.5pt; background: transparent; }
+
+/* Dispatch Center v0.6 */
+QWidget#dispatchPage { background: #F3F4F6; }
+QFrame#dispatchMetric { background: #FFFFFF; border: 1px solid #D1D5DB; border-radius: 10px; }
+QLabel#dispatchMetricValue { color: #111827; font-size: 18pt; font-weight: 800; background: transparent; }
+QLabel#dispatchMetricLabel { color: #6B7280; font-size: 8.5pt; font-weight: 600; background: transparent; }
+QFrame#kanbanLane { background: #F8FAFC; border: 1px solid #D1D5DB; border-radius: 11px; }
+QLabel#kanbanTitle { color: #111827; font-size: 11pt; font-weight: 750; background: transparent; }
+QLabel#kanbanCount { color: #EA580C; background: #FFF7ED; border: 1px solid #FED7AA; border-radius: 10px; padding: 2px 7px; font-weight: 700; }
+QFrame#dispatchJobCard { background: #FFFFFF; border: 1px solid #D1D5DB; border-left: 4px solid #64748B; border-radius: 9px; }
+QFrame#dispatchJobCard:hover { border-color: #F97316; background: #FFF7ED; }
+QFrame#dispatchJobCard[priority="high"] { border-left-color: #F59E0B; }
+QFrame#dispatchJobCard[priority="urgent"] { border-left-color: #DC2626; }
+QFrame#dispatchJobCard[priority="low"] { border-left-color: #0284C7; }
+QLabel#dispatchJobNumber { color: #EA580C; font-size: 8.5pt; font-weight: 800; background: transparent; }
+QLabel#dispatchPriority { color: #374151; font-size: 7.5pt; font-weight: 800; background: #F3F4F6; border-radius: 6px; padding: 2px 5px; }
+QLabel#dispatchPriority[priority="urgent"] { color: #991B1B; background: #FEE2E2; }
+QLabel#dispatchPriority[priority="high"] { color: #92400E; background: #FEF3C7; }
+QLabel#dispatchCustomer { color: #111827; font-size: 10.5pt; font-weight: 750; background: transparent; }
+QLabel#dispatchRoute, QLabel#dispatchSchedule, QLabel#dispatchAssignment { color: #6B7280; font-size: 8.5pt; background: transparent; }
+QLabel#dispatchAmount { color: #1F2937; font-weight: 700; background: transparent; }
+QLabel#dispatchAlertCount { color: #9CA3AF; font-size: 8pt; background: transparent; }
+QLabel#dispatchAlertCount[hasAlerts="true"] { color: #D97706; font-weight: 700; }
+QFrame#dispatchDetail { background: #FFFFFF; border: 1px solid #D1D5DB; border-radius: 12px; }
+QLabel#sectionTitle { color: #374151; font-weight: 700; font-size: 9pt; background: transparent; }
+QFrame#calendarLane { background: #F8FAFC; border: 1px solid #D1D5DB; border-radius: 10px; }
+QLabel#calendarLaneTitle { color: #1F2937; font-weight: 750; font-size: 10pt; background: transparent; }
+QLabel#calendarPeriod { color: #111827; font-weight: 750; font-size: 11pt; padding-left: 8px; }
+QLabel#statusTransition { color: #EA580C; font-size: 16pt; font-weight: 800; padding: 12px; }
+QTabWidget::pane { border: 1px solid #D1D5DB; border-radius: 9px; background: #F9FAFB; }
+QTabBar::tab { background: #F3F4F6; color: #6B7280; border: 1px solid #D1D5DB; padding: 9px 15px; }
+QTabBar::tab:selected { color: #EA580C; background: #FFFFFF; border-bottom: 2px solid #F97316; }
+QCalendarWidget QAbstractItemView:enabled { background: #FFFFFF; color: #111827; selection-background-color: #F97316; selection-color: #111827; }
+
+/* Navigation accessibility v0.6.1 */
+QFrame#topNavigationBar {
+    background: #FFFFFF;
+    border-bottom: 1px solid #D1D5DB;
+}
+QPushButton#navigationToggle {
+    background: #F3F4F6;
+    color: #111827;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+    font-size: 16pt;
+    font-weight: 700;
+    padding: 0;
+}
+QPushButton#navigationToggle:hover {
+    background: #F97316;
+    color: #111827;
+    border-color: #F97316;
+}
+QPushButton#navigationToggle:pressed {
+    background: #EA580C;
+}
+QLabel#sectionTitle {
+    color: #111827;
+    font-size: 12pt;
+    font-weight: 750;
+    background: transparent;
+}

@@ -30,3 +30,19 @@
 | NFR-PERF-003 | Pure calculation engine with 60 ms UI debounce and no provider/database dependency |
 | NFR-MAINT-001 | Pricing engine independently testable without Qt, SQLite, maps, or internet |
 | NFR-DATA-001 | Revision configuration, inputs, warnings, terms, charges, and generated PDF document links preserved |
+
+## Dispatch Center v0.6.0
+
+| Requirement | Implementation |
+|---|---|
+| Section 20.1 | Seven-lane Kanban board plus searchable all-jobs list; cards show customer, route, assignment, time, priority, amount, and alerts |
+| Section 20.2 | Validated lifecycle transitions, required confirmations/reasons, wait timing, and status-event audit history |
+| FR-DISP-001 | Driver and vehicle overlap detection before assignment or calendar rescheduling |
+| FR-DISP-002 | Planned-duration and promised-window feasibility warnings |
+| FR-DISP-004 | Every status change records user, UTC time, note, and override reason |
+| FR-DISP-005 | Reassignment closes the prior assignment instead of deleting it |
+| FR-DISP-007 | Completed jobs preserve their last driver/vehicle assignment and planned financial/operational data |
+| Section 21 | Day-by-driver, week, and month calendar views with unassigned/unscheduled queue |
+| FR-CAL-001 | Assignment checks cover driver, vehicle, status/availability, overlap, duration, and promised window |
+| Responsive UI | Kanban horizontal scrolling, reflowing metric/header grids, vertical detail layout, and stacked calendar queue on smaller windows |
+| Database integration | Existing normalized `jobs`, `job_stops`, `job_assignments`, `job_status_events`, `wait_events`, `drivers`, `vehicles`, and `audit_events` tables |

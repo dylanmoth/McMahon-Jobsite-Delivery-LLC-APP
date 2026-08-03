@@ -56,7 +56,7 @@ class AppConfig:
         db_url = os.getenv("MCMAHON_DATABASE_URL") or f"sqlite:///{paths.database_file.as_posix()}"
         return cls(
             app_name="McMahon Dispatch",
-            app_version="0.5.0",
+            app_version="0.6.0",
             organization_name="McMahon Jobsite Delivery LLC",
             environment=os.getenv("MCMAHON_ENVIRONMENT", "production").strip().lower(),
             log_level=os.getenv("MCMAHON_LOG_LEVEL", "INFO").strip().upper(),

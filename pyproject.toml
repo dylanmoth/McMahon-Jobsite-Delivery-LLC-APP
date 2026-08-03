@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mcmahon-dispatch"
-version = "0.5.0"
+version = "0.6.1"
 description = "Commercial local-first dispatch platform for McMahon Jobsite Delivery LLC"
 readme = "README.md"
 requires-python = ">=3.12,<3.14"

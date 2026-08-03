@@ -48,6 +48,10 @@ class Sidebar(QFrame):
         layout.addStretch()
         self.user_label = QLabel(user.display_name); self.user_label.setObjectName("muted"); layout.addWidget(self.user_label)
 
+    @property
+    def is_collapsed(self) -> bool:
+        return self._collapsed
+
     def set_active(self, key: str) -> None:
         for route, button in self._buttons.items():
             button.setProperty("active", route == key); button.style().unpolish(button); button.style().polish(button)

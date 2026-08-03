@@ -1,7 +1,45 @@
-# McMahon Dispatch v0.5.1
+# McMahon Dispatch v0.6.1 — Navigation Accessibility
 
-- Refresh customer and saved-quote choices whenever the Quote Builder is activated.
-- Preserve the currently selected customer, selected quote, typed customer text, and dirty state during refresh.
-- Reorder the Quote Builder into Quick Call Notes (left), Customer Quote (center), and Live Quote Summary (right).
-- Reduce the width and vertical footprint of the live summary, price breakdown, and warnings rail.
-- Include the Quote Builder price-override scope correction (`self.service`).
+## Changed
+
+- Renamed the visible Dispatch tab from **Kanban** to **Job Board**.
+- Standardized the customer-facing module label as **Customers**.
+- Restored an always-visible navigation toggle in the top-left application bar.
+- Added `Ctrl+B` as a keyboard shortcut for showing or hiding navigation.
+- Navigation collapse state remains saved between launches.
+
+## Database
+
+No migration is required.
+
+---
+
+# McMahon Dispatch v0.6.0 — Dispatch Center
+
+## Added
+
+- Production Dispatch Center integrated into the main application and sidebar routes.
+- Seven-lane Kanban workflow: Scheduled, Picking Up, Waiting, In Transit, Delivered, Completed, and Cancelled.
+- Drag-and-drop job status changes with transition validation and confirmation dialogs.
+- Day-by-driver, week, and month calendar screens.
+- Calendar drag-and-drop rescheduling that preserves time and duration.
+- Unassigned and unscheduled job queue.
+- Searchable all-jobs table, including Accepted and non-board operational statuses.
+- New/edit job screen with schedule, route, order, financial plan, and internal dispatch fields.
+- Driver and vehicle assignment screen with availability, overlap, duration, and promised-window conflict checks.
+- Driver management and fleet management screens.
+- Persistent job status timeline, wait events, assignment history, and audit events.
+- Live dispatch metrics and automatic job warnings.
+- Responsive header, metrics, detail panel, calendar queue, and horizontal Kanban layouts.
+
+## Operational behavior
+
+- Reassignments retain prior assignment history.
+- Waiting starts and stops a persisted wait timer.
+- Completed and cancelled jobs release active driver and vehicle resources while retaining the last assignment for history/display.
+- Calendar moves detect conflicts and require explicit override approval.
+- Status changes enforce the lifecycle rules in MJD-SRS-001 v1.0.
+
+## Database
+
+No new migration is required. The normalized schema already includes all Dispatch Center tables used by this release.
