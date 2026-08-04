@@ -204,3 +204,31 @@ QWidget#invoicePage QTableWidget { background: #0F172A; alternate-background-col
 QWidget#invoicePage QHeaderView::section { background: #111827; color: #CBD5E1; border: 0; border-bottom: 1px solid #334155; padding: 8px; font-weight: 700; }
 QWidget#invoicePage QTableWidget::item:selected { background: #7C2D12; color: #FFFFFF; }
 QWidget#invoicePage QTabBar::tab:selected { color: #F97316; border-bottom: 2px solid #F97316; }
+
+/* Shared action semantics */
+QPushButton#primaryButton,
+QPushButton#primary {
+    background: #F97316;
+    color: #111827;
+    border: 1px solid #F97316;
+    font-weight: 700;
+}
+QPushButton#primaryButton:hover,
+QPushButton#primary:hover { background: #FB923C; border-color: #FB923C; }
+QPushButton#primaryButton:pressed,
+QPushButton#primary:pressed { background: #EA580C; border-color: #EA580C; }
+QPushButton#dangerButton,
+QPushButton#danger {
+    background: #3F1518;
+    color: #FCA5A5;
+    border: 1px solid #7F1D1D;
+    font-weight: 700;
+}
+QPushButton#dangerButton:hover,
+QPushButton#danger:hover { background: #521B20; border-color: #EF4444; }
+QPushButton:disabled,
+QToolButton:disabled {
+    background: #172033;
+    color: #64748B;
+    border-color: #263244;
+}

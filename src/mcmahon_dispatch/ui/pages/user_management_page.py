@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
-from datetime import datetime
-
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QCheckBox,
@@ -12,10 +10,8 @@ from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFormLayout,
-    QGridLayout,
     QGroupBox,
     QHBoxLayout,
-    QHeaderView,
     QLabel,
     QLineEdit,
     QListWidget,
@@ -26,13 +22,14 @@ from PySide6.QtWidgets import (
     QSplitter,
     QTabWidget,
     QTableWidget,
-    QTableWidgetItem,
-    QTextEdit,
     QVBoxLayout,
     QWidget,
 )
 
 from mcmahon_dispatch.core.exceptions import AuthenticationError, ValidationError
+from mcmahon_dispatch.core.formatting import format_datetime, humanize_identifier
+from mcmahon_dispatch.ui.common import DebouncedCall, PageHeader, configure_data_table
+from mcmahon_dispatch.ui.common.tables import populate_table
 from mcmahon_dispatch.services.auth_service import AuthenticationService
 from mcmahon_dispatch.services.settings_service import SettingsService
 from mcmahon_dispatch.ui.theme.theme_manager import ThemeManager
@@ -45,12 +42,10 @@ from mcmahon_dispatch.services.user_management_service import (
 )
 
 
-def _date_time(value: datetime | None) -> str:
-    return value.astimezone().strftime("%b %d, %Y %I:%M %p") if value else "Never"
-
-
 class PasswordDialog(QDialog):
-    def __init__(self, title: str, include_current: bool = False, parent: QWidget | None = None) -> None:
+    def __init__(
+        self, title: str, include_current: bool = False, parent: QWidget | None = None
+    ) -> None:
         super().__init__(parent)
         self.setWindowTitle(title)
         self.setMinimumWidth(430)
@@ -71,7 +66,9 @@ class PasswordDialog(QDialog):
             form.addRow("", self.require_change)
         hint = QLabel("At least 12 characters with uppercase, lowercase, and a number.")
         hint.setObjectName("muted")
-        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel
+        )
         buttons.accepted.connect(self._accept)
         buttons.rejected.connect(self.reject)
         layout = QVBoxLayout(self)
@@ -124,7 +121,9 @@ class UserEditorDialog(QDialog):
             item = QListWidgetItem(f"{role.name} — {role.description}")
             item.setData(Qt.ItemDataRole.UserRole, role.id)
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
-            item.setCheckState(Qt.CheckState.Checked if role.id in selected else Qt.CheckState.Unchecked)
+            item.setCheckState(
+                Qt.CheckState.Checked if role.id in selected else Qt.CheckState.Unchecked
+            )
             self.roles.addItem(item)
         form = QFormLayout()
         form.addRow("Username", self.username)
@@ -139,7 +138,9 @@ class UserEditorDialog(QDialog):
             form.addRow("Temporary password", self.password)
             form.addRow("Confirm password", self.confirm)
         form.addRow("", self.must_change)
-        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel
+        )
         buttons.accepted.connect(self._accept)
         buttons.rejected.connect(self.reject)
         layout = QVBoxLayout(self)
@@ -200,18 +201,24 @@ class UsersTab(QWidget):
         toolbar.addWidget(edit)
         toolbar.addWidget(reset)
         toolbar.addWidget(sessions)
-        self.table = QTableWidget(0, 8)
-        self.table.setHorizontalHeaderLabels([
-            "Name", "Username", "Roles", "Status", "Email", "Last Sign-In", "Devices", "Password Change",
-        ])
-        self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
-        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.table.verticalHeader().setVisible(False)
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.table = QTableWidget()
+        configure_data_table(
+            self.table,
+            (
+                "Name",
+                "Username",
+                "Roles",
+                "Status",
+                "Email",
+                "Last Sign-In",
+                "Devices",
+                "Password Change",
+            ),
+            stretch_column=0,
+        )
         self.table.doubleClicked.connect(self._edit)
-        self.search.textChanged.connect(lambda: QTimer.singleShot(250, self.refresh))
+        self._search_debounce = DebouncedCall(self.refresh, parent=self)
+        self.search.textChanged.connect(self._search_debounce.schedule)
         self.status.currentIndexChanged.connect(self.refresh)
         layout = QVBoxLayout(self)
         layout.addLayout(toolbar)
@@ -230,20 +237,22 @@ class UsersTab(QWidget):
         except ValidationError as exc:
             QMessageBox.warning(self, "Users", str(exc))
             return
-        self.table.setRowCount(len(self.rows))
-        for row_index, row in enumerate(self.rows):
-            values = [
-                row.display_name,
-                row.username,
-                ", ".join(row.roles),
-                row.status.replace("_", " ").title(),
-                row.email,
-                _date_time(row.last_login_at),
-                str(row.active_devices),
-                "Required" if row.must_change_password else "No",
-            ]
-            for column, value in enumerate(values):
-                self.table.setItem(row_index, column, QTableWidgetItem(value))
+        populate_table(
+            self.table,
+            (
+                (
+                    row.display_name,
+                    row.username,
+                    ", ".join(row.roles),
+                    humanize_identifier(row.status),
+                    row.email,
+                    format_datetime(row.last_login_at, empty="Never"),
+                    str(row.active_devices),
+                    "Required" if row.must_change_password else "No",
+                )
+                for row in self.rows
+            ),
+        )
 
     def _new(self) -> None:
         dialog = UserEditorDialog(self.service.roles(), parent=self)
@@ -297,9 +306,13 @@ class UsersTab(QWidget):
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return
         try:
-            self.service.reset_password(row.id, dialog.password.text(), dialog.require_change.isChecked())
+            self.service.reset_password(
+                row.id, dialog.password.text(), dialog.require_change.isChecked()
+            )
             self.refresh()
-            QMessageBox.information(self, "Password", "Password reset. Remembered sessions were revoked.")
+            QMessageBox.information(
+                self, "Password", "Password reset. Remembered sessions were revoked."
+            )
         except ValidationError as exc:
             QMessageBox.warning(self, "Password", str(exc))
 
@@ -307,11 +320,14 @@ class UsersTab(QWidget):
         row = self.selected()
         if row is None:
             return
-        if QMessageBox.question(
-            self,
-            "Sign Out Devices",
-            f"Sign {row.display_name} out on all remembered devices?",
-        ) != QMessageBox.StandardButton.Yes:
+        if (
+            QMessageBox.question(
+                self,
+                "Sign Out Devices",
+                f"Sign {row.display_name} out on all remembered devices?",
+            )
+            != QMessageBox.StandardButton.Yes
+        ):
             return
         try:
             count = self.service.revoke_sessions(row.id)
@@ -347,7 +363,11 @@ class RolesTab(QWidget):
         splitter.addWidget(right)
         splitter.setSizes([250, 700])
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel("Assign permissions to each role. Built-in Admin, Dispatcher, and Driver roles are ready to use."))
+        layout.addWidget(
+            QLabel(
+                "Assign permissions to each role. Built-in Admin, Dispatcher, and Driver roles are ready to use."
+            )
+        )
         layout.addWidget(splitter, 1)
         self.refresh()
 
@@ -418,21 +438,23 @@ class AuditTab(QWidget):
         self.event_type = QComboBox()
         self.event_type.addItem("All actions", None)
         for event_type in service.audit_event_types():
-            self.event_type.addItem(event_type.replace("_", " ").replace(".", " › ").title(), event_type)
+            self.event_type.addItem(
+                event_type.replace("_", " ").replace(".", " › ").title(), event_type
+            )
         refresh = QPushButton("Refresh")
         refresh.clicked.connect(self.refresh)
         bar = QHBoxLayout()
         bar.addWidget(self.search, 1)
         bar.addWidget(self.event_type)
         bar.addWidget(refresh)
-        self.table = QTableWidget(0, 6)
-        self.table.setHorizontalHeaderLabels(["Time", "User", "Action", "Record Type", "Reason", "Details"])
-        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.table.verticalHeader().setVisible(False)
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.table.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)
-        self.search.textChanged.connect(lambda: QTimer.singleShot(250, self.refresh))
+        self.table = QTableWidget()
+        configure_data_table(
+            self.table,
+            ("Time", "User", "Action", "Record Type", "Reason", "Details"),
+            stretch_column=5,
+        )
+        self._search_debounce = DebouncedCall(self.refresh, parent=self)
+        self.search.textChanged.connect(self._search_debounce.schedule)
         self.event_type.currentIndexChanged.connect(self.refresh)
         layout = QVBoxLayout(self)
         layout.addLayout(bar)
@@ -445,18 +467,20 @@ class AuditTab(QWidget):
         except ValidationError as exc:
             QMessageBox.warning(self, "Audit Log", str(exc))
             return
-        self.table.setRowCount(len(rows))
-        for row_index, row in enumerate(rows):
-            values = [
-                _date_time(row.occurred_at),
-                row.user_name,
-                row.event_type.replace("_", " ").replace(".", " › ").title(),
-                row.entity_type.replace("_", " ").title(),
-                row.reason,
-                json.dumps(row.details, sort_keys=True) if row.details else "",
-            ]
-            for column, value in enumerate(values):
-                self.table.setItem(row_index, column, QTableWidgetItem(value))
+        populate_table(
+            self.table,
+            (
+                (
+                    format_datetime(row.occurred_at),
+                    row.user_name,
+                    humanize_identifier(row.event_type),
+                    humanize_identifier(row.entity_type, empty=""),
+                    row.reason,
+                    json.dumps(row.details, sort_keys=True) if row.details else "",
+                )
+                for row in rows
+            ),
+        )
 
 
 class ProfilePage(QWidget):
@@ -468,8 +492,10 @@ class ProfilePage(QWidget):
         super().__init__()
         self.service = service
         self.auth = auth
-        title = QLabel("My Profile")
-        title.setObjectName("pageTitle")
+        header = PageHeader(
+            "My Profile",
+            "Update your contact information and account security.",
+        )
         self.username = QLabel()
         self.display_name = QLineEdit()
         self.first_name = QLineEdit()
@@ -500,7 +526,9 @@ class ProfilePage(QWidget):
         box_layout.addLayout(form)
         box_layout.addLayout(buttons)
         layout = QVBoxLayout(self)
-        layout.addWidget(title)
+        layout.setContentsMargins(20, 18, 20, 20)
+        layout.setSpacing(14)
+        layout.addWidget(header)
         layout.addWidget(box)
         layout.addStretch()
         self.on_activated()
@@ -548,7 +576,9 @@ class ProfilePage(QWidget):
 
     def _forget(self) -> None:
         self.auth.forget_remembered_login()
-        QMessageBox.information(self, "Remembered Login", "This computer will require a password next time.")
+        QMessageBox.information(
+            self, "Remembered Login", "This computer will require a password next time."
+        )
 
 
 class SettingsTab(QWidget):
@@ -621,9 +651,7 @@ class SettingsTab(QWidget):
         save.setObjectName("primary")
         save.clicked.connect(self._save)
 
-        note = QLabel(
-            "Appearance changes preview immediately. Select Save Settings to keep them."
-        )
+        note = QLabel("Appearance changes preview immediately. Select Save Settings to keep them.")
         note.setObjectName("muted")
         note.setWordWrap(True)
 
@@ -678,10 +706,10 @@ class UserManagementPage(QWidget):
         theme_manager: ThemeManager,
     ) -> None:
         super().__init__()
-        title = QLabel("Users & Access")
-        title.setObjectName("pageTitle")
-        subtitle = QLabel("Manage employee accounts, roles, permissions, settings, and security history.")
-        subtitle.setObjectName("muted")
+        header = PageHeader(
+            "Users & Access",
+            "Manage employee accounts, roles, permissions, settings, and security history.",
+        )
         self.tabs = QTabWidget()
         tabs = self.tabs
         tabs.addTab(UsersTab(service), "Users")
@@ -691,8 +719,9 @@ class UserManagementPage(QWidget):
         if service.can_manage_settings:
             tabs.addTab(SettingsTab(settings, theme_manager), "Settings")
         layout = QVBoxLayout(self)
-        layout.addWidget(title)
-        layout.addWidget(subtitle)
+        layout.setContentsMargins(20, 18, 20, 20)
+        layout.setSpacing(14)
+        layout.addWidget(header)
         layout.addWidget(tabs, 1)
 
     def set_view(self, key: str) -> None:

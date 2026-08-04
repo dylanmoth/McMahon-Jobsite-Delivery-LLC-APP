@@ -139,3 +139,31 @@ QWidget#invoicePage QGroupBox::title { color: #EA580C; subcontrol-origin: margin
 QWidget#invoicePage QTableWidget { background: #FFFFFF; alternate-background-color: #F8FAFC; border: 1px solid #D1D5DB; border-radius: 8px; gridline-color: #E2E8F0; }
 QWidget#invoicePage QHeaderView::section { background: #F8FAFC; color: #374151; border: 0; border-bottom: 1px solid #D1D5DB; padding: 8px; font-weight: 700; }
 QWidget#invoicePage QTableWidget::item:selected { background: #FFEDD5; color: #111827; }
+
+/* Shared action semantics */
+QPushButton#primaryButton,
+QPushButton#primary {
+    background: #F97316;
+    color: #111827;
+    border: 1px solid #F97316;
+    font-weight: 700;
+}
+QPushButton#primaryButton:hover,
+QPushButton#primary:hover { background: #FB923C; border-color: #FB923C; }
+QPushButton#primaryButton:pressed,
+QPushButton#primary:pressed { background: #EA580C; border-color: #EA580C; }
+QPushButton#dangerButton,
+QPushButton#danger {
+    background: #FEF2F2;
+    color: #B91C1C;
+    border: 1px solid #FCA5A5;
+    font-weight: 700;
+}
+QPushButton#dangerButton:hover,
+QPushButton#danger:hover { background: #FEE2E2; border-color: #DC2626; }
+QPushButton:disabled,
+QToolButton:disabled {
+    background: #F3F4F6;
+    color: #9CA3AF;
+    border-color: #E5E7EB;
+}

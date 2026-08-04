@@ -7,7 +7,13 @@ import pytest
 from sqlalchemy import func, select
 
 from mcmahon_dispatch.core.exceptions import ValidationError
-from mcmahon_dispatch.database.models import Driver, JobAssignment, JobStatusEvent, Vehicle, WaitEvent
+from mcmahon_dispatch.database.models import (
+    Driver,
+    JobAssignment,
+    JobStatusEvent,
+    Vehicle,
+    WaitEvent,
+)
 from mcmahon_dispatch.services.auth_service import AuthenticationService
 from mcmahon_dispatch.services.customer_service import CustomerSaveRequest, CustomerService
 from mcmahon_dispatch.services.dispatch_service import (
@@ -142,7 +148,12 @@ def test_dispatch_job_assignment_and_status_timeline(database, config) -> None:
     assert [event.to_status for event in timeline][:2] == ["completed", "delivered"]
 
     with database.session_factory() as session:
-        assert session.scalar(select(func.count(JobStatusEvent.id)).where(JobStatusEvent.job_id == job_id)) == 6
+        assert (
+            session.scalar(
+                select(func.count(JobStatusEvent.id)).where(JobStatusEvent.job_id == job_id)
+            )
+            == 6
+        )
         wait = session.scalar(select(WaitEvent).where(WaitEvent.job_id == job_id))
         assert wait is not None
         assert wait.ended_at is not None
@@ -181,7 +192,9 @@ def test_reassignment_preserves_history(database, config) -> None:
     )
     start = datetime.now(UTC) + timedelta(days=3)
     job_id = service.save_job(_job_request(customer_id, start))
-    service.assign(job_id, AssignmentRequest(driver_id, vehicle_id, start, start + timedelta(hours=2)))
+    service.assign(
+        job_id, AssignmentRequest(driver_id, vehicle_id, start, start + timedelta(hours=2))
+    )
     service.assign(
         job_id,
         AssignmentRequest(
@@ -194,7 +207,9 @@ def test_reassignment_preserves_history(database, config) -> None:
     )
     with database.session_factory() as session:
         assignments = session.scalars(
-            select(JobAssignment).where(JobAssignment.job_id == job_id).order_by(JobAssignment.assigned_at)
+            select(JobAssignment)
+            .where(JobAssignment.job_id == job_id)
+            .order_by(JobAssignment.assigned_at)
         ).all()
         assert len(assignments) == 2
         assert assignments[0].unassigned_at is not None
@@ -206,7 +221,9 @@ def test_calendar_reschedule_moves_assignment(database, config) -> None:
     _user, customer_id, driver_id, vehicle_id, service = _service(database, config)
     start = datetime.now(UTC) + timedelta(days=4)
     job_id = service.save_job(_job_request(customer_id, start))
-    service.assign(job_id, AssignmentRequest(driver_id, vehicle_id, start, start + timedelta(hours=2)))
+    service.assign(
+        job_id, AssignmentRequest(driver_id, vehicle_id, start, start + timedelta(hours=2))
+    )
     target = start.date() + timedelta(days=5)
     service.reschedule_job(job_id, target)
     loaded = service.load_job(job_id).record
@@ -231,10 +248,14 @@ def test_read_only_dispatch_cannot_write(database, config) -> None:
 
 def test_calendar_reschedule_blocks_conflicts_until_overridden(database, config) -> None:
     _user, customer_id, driver_id, vehicle_id, service = _service(database, config)
-    start = datetime.now(UTC).replace(hour=9, minute=0, second=0, microsecond=0) + timedelta(days=10)
+    start = datetime.now(UTC).replace(hour=9, minute=0, second=0, microsecond=0) + timedelta(
+        days=10
+    )
     first_id = service.save_job(_job_request(customer_id, start))
     second_id = service.save_job(_job_request(customer_id, start + timedelta(days=1)))
-    service.assign(first_id, AssignmentRequest(driver_id, vehicle_id, start, start + timedelta(hours=2)))
+    service.assign(
+        first_id, AssignmentRequest(driver_id, vehicle_id, start, start + timedelta(hours=2))
+    )
     service.assign(
         second_id,
         AssignmentRequest(
@@ -258,9 +279,7 @@ def test_calendar_reschedule_blocks_conflicts_until_overridden(database, config)
 def test_driver_and_vehicle_statuses_are_validated(database, config) -> None:
     _user, _customer_id, _driver_id, _vehicle_id, service = _service(database, config)
     with pytest.raises(ValidationError):
-        service.save_driver(
-            DriverSaveRequest("Bad", "Status", "", "", "flying", "FL", None, "")
-        )
+        service.save_driver(DriverSaveRequest("Bad", "Status", "", "", "flying", "FL", None, ""))
     with pytest.raises(ValidationError):
         service.save_vehicle(
             VehicleSaveRequest(

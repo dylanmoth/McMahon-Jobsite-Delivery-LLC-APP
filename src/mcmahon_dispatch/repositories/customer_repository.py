@@ -98,28 +98,36 @@ class CustomerRepository:
         normalized = query.strip()
         if normalized:
             like = f"%{normalized}%"
-            customer_ids_by_contact = select(CustomerContact.customer_id).join(Contact).where(
-                Contact.organization_id == self.organization_id,
-                Contact.deleted_at.is_(None),
-                or_(
-                    Contact.first_name.ilike(like),
-                    Contact.last_name.ilike(like),
-                    Contact.phone.ilike(like),
-                    Contact.mobile.ilike(like),
-                    Contact.email.ilike(like),
-                    Contact.notes.ilike(like),
-                ),
+            customer_ids_by_contact = (
+                select(CustomerContact.customer_id)
+                .join(Contact)
+                .where(
+                    Contact.organization_id == self.organization_id,
+                    Contact.deleted_at.is_(None),
+                    or_(
+                        Contact.first_name.ilike(like),
+                        Contact.last_name.ilike(like),
+                        Contact.phone.ilike(like),
+                        Contact.mobile.ilike(like),
+                        Contact.email.ilike(like),
+                        Contact.notes.ilike(like),
+                    ),
+                )
             )
-            customer_ids_by_address = select(CustomerAddress.customer_id).join(Address).where(
-                Address.organization_id == self.organization_id,
-                Address.deleted_at.is_(None),
-                or_(
-                    Address.entered_address.ilike(like),
-                    Address.normalized_address.ilike(like),
-                    Address.city.ilike(like),
-                    Address.postal_code.ilike(like),
-                    Address.instructions.ilike(like),
-                ),
+            customer_ids_by_address = (
+                select(CustomerAddress.customer_id)
+                .join(Address)
+                .where(
+                    Address.organization_id == self.organization_id,
+                    Address.deleted_at.is_(None),
+                    or_(
+                        Address.entered_address.ilike(like),
+                        Address.normalized_address.ilike(like),
+                        Address.city.ilike(like),
+                        Address.postal_code.ilike(like),
+                        Address.instructions.ilike(like),
+                    ),
+                )
             )
             customer_ids_by_quote = select(Quote.customer_id).where(
                 Quote.organization_id == self.organization_id,
@@ -152,11 +160,15 @@ class CustomerRepository:
         if payment_method:
             stmt = stmt.where(Customer.preferred_payment_method == payment_method)
         if has_outstanding is not None:
-            outstanding_exists = select(Invoice.id).where(
-                Invoice.customer_id == Customer.id,
-                Invoice.balance_cents > 0,
-                Invoice.deleted_at.is_(None),
-            ).exists()
+            outstanding_exists = (
+                select(Invoice.id)
+                .where(
+                    Invoice.customer_id == Customer.id,
+                    Invoice.balance_cents > 0,
+                    Invoice.deleted_at.is_(None),
+                )
+                .exists()
+            )
             stmt = stmt.where(outstanding_exists if has_outstanding else ~outstanding_exists)
         return list(self.session.scalars(stmt).unique())
 
@@ -217,30 +229,49 @@ class CustomerRepository:
         customer.deleted_by_id = user_id
 
     def delete_assessment(self, customer_id: str) -> CustomerDeleteAssessment:
-        quote_count = self.session.scalar(
-            select(func.count(Quote.id)).where(
-                Quote.customer_id == customer_id, Quote.deleted_at.is_(None)
+        quote_count = (
+            self.session.scalar(
+                select(func.count(Quote.id)).where(
+                    Quote.customer_id == customer_id, Quote.deleted_at.is_(None)
+                )
             )
-        ) or 0
-        job_count = self.session.scalar(
-            select(func.count(Job.id)).where(Job.customer_id == customer_id, Job.deleted_at.is_(None))
-        ) or 0
-        invoice_count = self.session.scalar(
-            select(func.count(Invoice.id)).where(
-                Invoice.customer_id == customer_id, Invoice.deleted_at.is_(None)
+            or 0
+        )
+        job_count = (
+            self.session.scalar(
+                select(func.count(Job.id)).where(
+                    Job.customer_id == customer_id, Job.deleted_at.is_(None)
+                )
             )
-        ) or 0
-        payment_count = self.session.scalar(
-            select(func.count(Payment.id)).where(Payment.customer_id == customer_id)
-        ) or 0
-        document_count = self.session.scalar(
-            select(func.count(DocumentLink.id)).where(
-                DocumentLink.organization_id == self.organization_id,
-                DocumentLink.entity_type == "customer",
-                DocumentLink.entity_id == customer_id,
+            or 0
+        )
+        invoice_count = (
+            self.session.scalar(
+                select(func.count(Invoice.id)).where(
+                    Invoice.customer_id == customer_id, Invoice.deleted_at.is_(None)
+                )
             )
-        ) or 0
-        counts = tuple(map(int, (quote_count, job_count, invoice_count, payment_count, document_count)))
+            or 0
+        )
+        payment_count = (
+            self.session.scalar(
+                select(func.count(Payment.id)).where(Payment.customer_id == customer_id)
+            )
+            or 0
+        )
+        document_count = (
+            self.session.scalar(
+                select(func.count(DocumentLink.id)).where(
+                    DocumentLink.organization_id == self.organization_id,
+                    DocumentLink.entity_type == "customer",
+                    DocumentLink.entity_id == customer_id,
+                )
+            )
+            or 0
+        )
+        counts = tuple(
+            map(int, (quote_count, job_count, invoice_count, payment_count, document_count))
+        )
         return CustomerDeleteAssessment(not any(counts), *counts)
 
     def quotes(self, customer_id: str) -> list[Quote]:

@@ -159,7 +159,9 @@ class DashboardRepository:
         )
         sync_queue_count = int(
             self.session.scalar(
-                select(func.count()).select_from(SyncQueueItem).where(
+                select(func.count())
+                .select_from(SyncQueueItem)
+                .where(
                     SyncQueueItem.organization_id == self.organization_id,
                     SyncQueueItem.completed_at.is_(None),
                 )
@@ -262,7 +264,9 @@ class DashboardRepository:
         notifications: list[NotificationItem] = []
         overdue_count = int(
             self.session.scalar(
-                select(func.count()).select_from(Invoice).where(
+                select(func.count())
+                .select_from(Invoice)
+                .where(
                     Invoice.organization_id == self.organization_id,
                     Invoice.deleted_at.is_(None),
                     Invoice.balance_cents > 0,
@@ -275,7 +279,9 @@ class DashboardRepository:
         )
         waiting_count = int(
             self.session.scalar(
-                select(func.count()).select_from(Job).where(
+                select(func.count())
+                .select_from(Job)
+                .where(
                     Job.organization_id == self.organization_id,
                     Job.deleted_at.is_(None),
                     Job.status == JobStatus.WAITING.value,
@@ -285,7 +291,9 @@ class DashboardRepository:
         )
         research_count = int(
             self.session.scalar(
-                select(func.count()).select_from(Quote).where(
+                select(func.count())
+                .select_from(Quote)
+                .where(
                     Quote.organization_id == self.organization_id,
                     Quote.deleted_at.is_(None),
                     Quote.status == QuoteStatus.RESEARCH_REQUIRED.value,

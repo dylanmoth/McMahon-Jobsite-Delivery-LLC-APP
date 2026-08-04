@@ -14,9 +14,13 @@ class UserRepository:
         return int(self.session.scalar(select(func.count()).select_from(User)) or 0)
 
     def by_username(self, username: str) -> User | None:
-        return self.session.scalar(select(User).where(func.lower(User.username) == username.lower()))
+        return self.session.scalar(
+            select(User).where(func.lower(User.username) == username.lower())
+        )
 
-    def create_admin(self, username: str, display_name: str, email: str | None, password_hash: str) -> User:
+    def create_admin(
+        self, username: str, display_name: str, email: str | None, password_hash: str
+    ) -> User:
         organization = self.session.scalar(select(Organization).limit(1))
         admin_role = self.session.scalar(select(Role).where(Role.code == "admin"))
         if organization is None or admin_role is None:

@@ -16,7 +16,9 @@ from mcmahon_dispatch.services.invoice_service import (
 
 def _setup(database, config):
     auth = AuthenticationService(database.session_factory, config)
-    user = auth.create_initial_admin("billing_owner", "Billing Owner", "billing@example.com", "StrongPassword123")
+    user = auth.create_initial_admin(
+        "billing_owner", "Billing Owner", "billing@example.com", "StrongPassword123"
+    )
     customers = CustomerService(database.session_factory, user.organization_id, user.id)
     customer_id = customers.save(
         CustomerSaveRequest(

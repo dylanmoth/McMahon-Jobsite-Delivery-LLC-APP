@@ -1,6 +1,9 @@
 from sqlalchemy.orm import Session, sessionmaker
 
-from mcmahon_dispatch.repositories.dashboard_repository import DashboardRepository, DashboardSnapshot
+from mcmahon_dispatch.repositories.dashboard_repository import (
+    DashboardRepository,
+    DashboardSnapshot,
+)
 
 
 class DashboardService:

@@ -65,20 +65,28 @@ class UserManagementRepository:
         )
 
     def username_exists(self, username: str, exclude_user_id: str | None = None) -> bool:
-        statement = select(func.count()).select_from(User).where(
-            User.organization_id == self.organization_id,
-            func.lower(User.username) == username.lower(),
-            User.deleted_at.is_(None),
+        statement = (
+            select(func.count())
+            .select_from(User)
+            .where(
+                User.organization_id == self.organization_id,
+                func.lower(User.username) == username.lower(),
+                User.deleted_at.is_(None),
+            )
         )
         if exclude_user_id:
             statement = statement.where(User.id != exclude_user_id)
         return bool(self.session.scalar(statement))
 
     def email_exists(self, email: str, exclude_user_id: str | None = None) -> bool:
-        statement = select(func.count()).select_from(User).where(
-            User.organization_id == self.organization_id,
-            func.lower(User.email) == email.lower(),
-            User.deleted_at.is_(None),
+        statement = (
+            select(func.count())
+            .select_from(User)
+            .where(
+                User.organization_id == self.organization_id,
+                func.lower(User.email) == email.lower(),
+                User.deleted_at.is_(None),
+            )
         )
         if exclude_user_id:
             statement = statement.where(User.id != exclude_user_id)
@@ -143,7 +151,9 @@ class UserManagementRepository:
     def set_role_permissions(self, role: Role, permission_ids: set[str]) -> None:
         valid_ids = set(
             self.session.scalars(
-                select(Permission.id).where(Permission.id.in_(permission_ids) if permission_ids else False)
+                select(Permission.id).where(
+                    Permission.id.in_(permission_ids) if permission_ids else False
+                )
             )
         )
         existing = {link.permission_id: link for link in role.permissions}

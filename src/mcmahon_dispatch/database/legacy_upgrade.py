@@ -20,32 +20,6 @@ from mcmahon_dispatch.database.models import (
     UserRole,
 )
 
-def parse_datetime(value):
-    if value is None:
-        return datetime.now(UTC)
-
-    if isinstance(value, datetime):
-        return value
-
-    if isinstance(value, str):
-        try:
-            return datetime.fromisoformat(value)
-        except ValueError:
-            pass
-
-        try:
-            return datetime.strptime(value, "%Y-%m-%d %H:%M:%S.%f")
-        except ValueError:
-            pass
-
-        try:
-            return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
-        except ValueError:
-            pass
-
-    return datetime.now(UTC)
-
-
 
 @dataclass(frozen=True, slots=True)
 class LegacySnapshot:
@@ -116,8 +90,8 @@ def restore_legacy_identity(snapshot: LegacySnapshot, factory: sessionmaker[Sess
                     timezone=str(row.get("timezone") or "America/New_York"),
                     currency=str(row.get("currency") or "USD"),
                     active=bool(row.get("active", 1)),
-                    created_at=parse_datetime(row.get("created_at")),
-                    updated_at=parse_datetime(row.get("updated_at")),
+                    created_at=row.get("created_at") or datetime.now(UTC),
+                    updated_at=row.get("updated_at") or datetime.now(UTC),
                     version=int(row.get("version") or 1),
                     created_by_id=row.get("created_by_id"),
                     updated_by_id=row.get("updated_by_id"),
@@ -143,8 +117,8 @@ def restore_legacy_identity(snapshot: LegacySnapshot, factory: sessionmaker[Sess
                     description=str(row.get("description") or ""),
                     category=code.partition(".")[0] or "general",
                     is_system=True,
-                    created_at=parse_datetime(row.get("created_at")),
-                    updated_at=parse_datetime(row.get("updated_at")),
+                    created_at=row.get("created_at") or datetime.now(UTC),
+                    updated_at=row.get("updated_at") or datetime.now(UTC),
                     version=int(row.get("version") or 1),
                     created_by_id=row.get("created_by_id"),
                     updated_by_id=row.get("updated_by_id"),
@@ -167,8 +141,8 @@ def restore_legacy_identity(snapshot: LegacySnapshot, factory: sessionmaker[Sess
                     description=str(row.get("description") or ""),
                     is_system=True,
                     active=True,
-                    created_at=parse_datetime(row.get("created_at")),
-                    updated_at=parse_datetime(row.get("updated_at")),
+                    created_at=row.get("created_at") or datetime.now(UTC),
+                    updated_at=row.get("updated_at") or datetime.now(UTC),
                     version=int(row.get("version") or 1),
                     created_by_id=row.get("created_by_id"),
                     updated_by_id=row.get("updated_by_id"),
@@ -197,8 +171,8 @@ def restore_legacy_identity(snapshot: LegacySnapshot, factory: sessionmaker[Sess
                     must_change_password=bool(row.get("must_change_password", 0)),
                     mfa_enabled=bool(row.get("mfa_enabled", 0)),
                     notification_preferences_json={},
-                    created_at=parse_datetime(row.get("created_at")),
-                    updated_at=parse_datetime(row.get("updated_at")),
+                    created_at=row.get("created_at") or datetime.now(UTC),
+                    updated_at=row.get("updated_at") or datetime.now(UTC),
                     version=int(row.get("version") or 1),
                     created_by_id=row.get("created_by_id"),
                     updated_by_id=row.get("updated_by_id"),
@@ -217,8 +191,8 @@ def restore_legacy_identity(snapshot: LegacySnapshot, factory: sessionmaker[Sess
                         id=str(row["id"]),
                         role_id=role_id,
                         permission_id=permission_id,
-                        created_at=parse_datetime(row.get("created_at")),
-                        updated_at=parse_datetime(row.get("updated_at")),
+                        created_at=row.get("created_at") or datetime.now(UTC),
+                        updated_at=row.get("updated_at") or datetime.now(UTC),
                         version=int(row.get("version") or 1),
                     )
                 )
@@ -232,8 +206,8 @@ def restore_legacy_identity(snapshot: LegacySnapshot, factory: sessionmaker[Sess
                         id=str(row["id"]),
                         user_id=user_id,
                         role_id=role_id,
-                        created_at=parse_datetime(row.get("created_at")),
-                        updated_at=parse_datetime(row.get("updated_at")),
+                        created_at=row.get("created_at") or datetime.now(UTC),
+                        updated_at=row.get("updated_at") or datetime.now(UTC),
                         version=int(row.get("version") or 1),
                     )
                 )

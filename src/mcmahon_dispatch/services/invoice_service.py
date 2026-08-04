@@ -27,7 +27,9 @@ CENT = Decimal("0.01")
 
 
 def cents(value: Decimal | str | float | int) -> int:
-    return int((Decimal(str(value)).quantize(CENT, rounding=ROUND_HALF_UP) * 100).to_integral_value())
+    return int(
+        (Decimal(str(value)).quantize(CENT, rounding=ROUND_HALF_UP) * 100).to_integral_value()
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -41,7 +43,11 @@ class InvoiceLineRequest:
 
     @property
     def line_total_cents(self) -> int:
-        return int((self.quantity * Decimal(self.unit_rate_cents)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+        return int(
+            (self.quantity * Decimal(self.unit_rate_cents)).quantize(
+                Decimal("1"), rounding=ROUND_HALF_UP
+            )
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -160,7 +166,11 @@ class InvoiceService:
                 raise ValidationError("Invoice not found.")
             if invoice is None:
                 invoice = repo.create_invoice(customer, self.user_id)
-            if invoice.status in (InvoiceStatus.PAID.value, InvoiceStatus.VOID.value, InvoiceStatus.WRITTEN_OFF.value):
+            if invoice.status in (
+                InvoiceStatus.PAID.value,
+                InvoiceStatus.VOID.value,
+                InvoiceStatus.WRITTEN_OFF.value,
+            ):
                 raise ValidationError("Paid, void, and written-off invoices cannot be edited.")
 
             line_values = tuple(
@@ -198,9 +208,15 @@ class InvoiceService:
                 due_on = request.due_on or issued_on + timedelta(days=request.terms_days)
                 invoice.issued_at = datetime.combine(issued_on, datetime.min.time(), tzinfo=UTC)
                 invoice.due_at = datetime.combine(due_on, datetime.max.time(), tzinfo=UTC)
-                invoice.status = InvoiceStatus.ISSUED.value if invoice.balance_cents else InvoiceStatus.PAID.value
+                invoice.status = (
+                    InvoiceStatus.ISSUED.value
+                    if invoice.balance_cents
+                    else InvoiceStatus.PAID.value
+                )
             elif request.issued_on:
-                invoice.issued_at = datetime.combine(request.issued_on, datetime.min.time(), tzinfo=UTC)
+                invoice.issued_at = datetime.combine(
+                    request.issued_on, datetime.min.time(), tzinfo=UTC
+                )
                 invoice.due_at = datetime.combine(
                     request.due_on or request.issued_on + timedelta(days=request.terms_days),
                     datetime.max.time(),
@@ -211,7 +227,11 @@ class InvoiceService:
                 "invoice",
                 invoice.id,
                 self.user_id,
-                details={"invoice_number": invoice.invoice_number, "total_cents": total, "status": invoice.status},
+                details={
+                    "invoice_number": invoice.invoice_number,
+                    "total_cents": total,
+                    "status": invoice.status,
+                },
             )
             session.flush()
             return invoice.id
@@ -229,7 +249,9 @@ class InvoiceService:
             if invoice.status not in (InvoiceStatus.DRAFT.value, InvoiceStatus.ISSUED.value):
                 raise ValidationError("Only draft or issued invoices can be issued.")
             invoice.issued_at = datetime.combine(now_date, datetime.min.time(), tzinfo=UTC)
-            invoice.due_at = datetime.combine(now_date + timedelta(days=invoice.terms_days), datetime.max.time(), tzinfo=UTC)
+            invoice.due_at = datetime.combine(
+                now_date + timedelta(days=invoice.terms_days), datetime.max.time(), tzinfo=UTC
+            )
             invoice.status = InvoiceStatus.ISSUED.value
             invoice.updated_by_id = self.user_id
             repo.audit("invoice.issued", "invoice", invoice.id, self.user_id)
@@ -245,7 +267,9 @@ class InvoiceService:
             if invoice is None:
                 raise ValidationError("Invoice not found.")
             if invoice.paid_cents:
-                raise ValidationError("An invoice with payments cannot be voided. Reverse or reallocate the payment first.")
+                raise ValidationError(
+                    "An invoice with payments cannot be voided. Reverse or reallocate the payment first."
+                )
             if invoice.status == InvoiceStatus.PAID.value:
                 raise ValidationError("Paid invoices cannot be voided.")
             invoice.status = InvoiceStatus.VOID.value
@@ -266,19 +290,29 @@ class InvoiceService:
             invoice = repo.get_invoice(invoice_id)
             if invoice is None:
                 raise ValidationError("Invoice not found.")
-            if invoice.status in (InvoiceStatus.DRAFT.value, InvoiceStatus.PAID.value, InvoiceStatus.VOID.value, InvoiceStatus.WRITTEN_OFF.value):
+            if invoice.status in (
+                InvoiceStatus.DRAFT.value,
+                InvoiceStatus.PAID.value,
+                InvoiceStatus.VOID.value,
+                InvoiceStatus.WRITTEN_OFF.value,
+            ):
                 raise ValidationError("Late fees apply only to open issued invoices.")
             if not invoice.due_at or self._as_utc(invoice.due_at) >= datetime.now(UTC):
                 raise ValidationError("This invoice is not yet past due.")
-            invoice.lines.append(
-                self._late_fee_line(invoice, amount_cents, clean_reason)
-            )
+            invoice.lines.append(self._late_fee_line(invoice, amount_cents, clean_reason))
             invoice.subtotal_cents += amount_cents
             invoice.total_cents += amount_cents
             invoice.balance_cents += amount_cents
             invoice.status = InvoiceStatus.OVERDUE.value
             invoice.updated_by_id = self.user_id
-            repo.audit("invoice.late_fee_added", "invoice", invoice.id, self.user_id, reason=clean_reason, details={"amount_cents": amount_cents})
+            repo.audit(
+                "invoice.late_fee_added",
+                "invoice",
+                invoice.id,
+                self.user_id,
+                reason=clean_reason,
+                details={"amount_cents": amount_cents},
+            )
 
     def _late_fee_line(self, invoice: Invoice, amount_cents: int, reason: str):
         from mcmahon_dispatch.database.models import InvoiceLine
@@ -340,7 +374,10 @@ class InvoiceService:
             raise ValidationError("Select a customer.")
         if request.gross_amount_cents <= 0:
             raise ValidationError("Payment amount must be greater than zero.")
-        if request.processing_fee_cents < 0 or request.processing_fee_cents > request.gross_amount_cents:
+        if (
+            request.processing_fee_cents < 0
+            or request.processing_fee_cents > request.gross_amount_cents
+        ):
             raise ValidationError("Processing fee must be between zero and the payment amount.")
         if not request.payment_method.strip():
             raise ValidationError("Select a payment method.")
@@ -363,7 +400,9 @@ class InvoiceService:
                 if invoice is None or invoice.customer_id != customer.id:
                     raise ValidationError("A selected invoice is unavailable for this customer.")
                 if allocation.amount_cents <= 0 or allocation.amount_cents > invoice.balance_cents:
-                    raise ValidationError(f"Allocation for {invoice.invoice_number} exceeds its open balance.")
+                    raise ValidationError(
+                        f"Allocation for {invoice.invoice_number} exceeds its open balance."
+                    )
                 allocations.append((invoice, allocation.amount_cents))
             payment = repo.create_payment(
                 customer_id=customer.id,
@@ -379,14 +418,21 @@ class InvoiceService:
             for invoice, amount in allocations:
                 invoice.paid_cents += amount
                 invoice.balance_cents = max(0, invoice.total_cents - invoice.paid_cents)
-                invoice.status = InvoiceStatus.PAID.value if invoice.balance_cents == 0 else InvoiceStatus.PARTIALLY_PAID.value
+                invoice.status = (
+                    InvoiceStatus.PAID.value
+                    if invoice.balance_cents == 0
+                    else InvoiceStatus.PARTIALLY_PAID.value
+                )
                 invoice.updated_by_id = self.user_id
             repo.audit(
                 "payment.recorded",
                 "payment",
                 payment.id,
                 self.user_id,
-                details={"payment_number": payment.payment_number, "gross_amount_cents": payment.gross_amount_cents},
+                details={
+                    "payment_number": payment.payment_number,
+                    "gross_amount_cents": payment.gross_amount_cents,
+                },
             )
             session.flush()
             return payment.id
@@ -414,22 +460,52 @@ class InvoiceService:
             path = folder / f"{self._safe_name(invoice.invoice_number)}.pdf"
             self.pdf.write_invoice(path, organization, customer, invoice)
             self._register_document(session, invoice, path, "invoice_pdf")
-            repo.audit("invoice.pdf_generated", "invoice", invoice.id, self.user_id, details={"path": str(path)})
+            repo.audit(
+                "invoice.pdf_generated",
+                "invoice",
+                invoice.id,
+                self.user_id,
+                details={"path": str(path)},
+            )
             return path
 
-    def generate_statement_pdf(self, customer_id: str, date_from: date, date_to: date) -> StatementResult:
+    def generate_statement_pdf(
+        self, customer_id: str, date_from: date, date_to: date
+    ) -> StatementResult:
         if date_to < date_from:
             raise ValidationError("Statement end date cannot be before the start date.")
         with self.factory.begin() as session:
             repo = InvoiceRepository(session, self.organization_id)
             organization = repo.organization()
-            customer, invoices, payments = repo.customer_statement_rows(customer_id, date_from, date_to)
-            valid_invoices = [invoice for invoice in invoices if invoice.status not in (InvoiceStatus.VOID.value, InvoiceStatus.WRITTEN_OFF.value)]
-            prior_charges = sum(invoice.total_cents for invoice in valid_invoices if (invoice.issued_at or invoice.created_at).date() < date_from)
-            prior_payments = sum(payment.gross_amount_cents for payment in payments if payment.received_at.date() < date_from)
+            customer, invoices, payments = repo.customer_statement_rows(
+                customer_id, date_from, date_to
+            )
+            valid_invoices = [
+                invoice
+                for invoice in invoices
+                if invoice.status not in (InvoiceStatus.VOID.value, InvoiceStatus.WRITTEN_OFF.value)
+            ]
+            prior_charges = sum(
+                invoice.total_cents
+                for invoice in valid_invoices
+                if (invoice.issued_at or invoice.created_at).date() < date_from
+            )
+            prior_payments = sum(
+                payment.gross_amount_cents
+                for payment in payments
+                if payment.received_at.date() < date_from
+            )
             opening_balance = max(0, prior_charges - prior_payments)
-            period_invoices = [invoice for invoice in valid_invoices if date_from <= (invoice.issued_at or invoice.created_at).date() <= date_to]
-            period_payments = [payment for payment in payments if date_from <= payment.received_at.date() <= date_to]
+            period_invoices = [
+                invoice
+                for invoice in valid_invoices
+                if date_from <= (invoice.issued_at or invoice.created_at).date() <= date_to
+            ]
+            period_payments = [
+                payment
+                for payment in payments
+                if date_from <= payment.received_at.date() <= date_to
+            ]
             invoice_cents = sum(invoice.total_cents for invoice in period_invoices)
             payment_cents = sum(payment.gross_amount_cents for payment in period_payments)
             closing_balance = max(0, opening_balance + invoice_cents - payment_cents)
@@ -447,13 +523,35 @@ class InvoiceService:
                 period_payments,
                 closing_balance,
             )
-            repo.audit("customer_statement.generated", "customer", customer.id, self.user_id, details={"path": str(path), "date_from": str(date_from), "date_to": str(date_to)})
-            return StatementResult(path, customer.company_name, opening_balance, invoice_cents, payment_cents, closing_balance)
+            repo.audit(
+                "customer_statement.generated",
+                "customer",
+                customer.id,
+                self.user_id,
+                details={"path": str(path), "date_from": str(date_from), "date_to": str(date_to)},
+            )
+            return StatementResult(
+                path,
+                customer.company_name,
+                opening_balance,
+                invoice_cents,
+                payment_cents,
+                closing_balance,
+            )
 
-    def _register_document(self, session: Session, invoice: Invoice, path: Path, document_type: str) -> None:
+    def _register_document(
+        self, session: Session, invoice: Invoice, path: Path, document_type: str
+    ) -> None:
         payload = path.read_bytes()
         checksum = hashlib.sha256(payload).hexdigest()
-        existing = next((link.document for link in getattr(invoice, "document_links", []) if link.document.storage_key == str(path)), None)
+        existing = next(
+            (
+                link.document
+                for link in getattr(invoice, "document_links", [])
+                if link.document.storage_key == str(path)
+            ),
+            None,
+        )
         if existing is not None:
             return
         document = Document(
@@ -486,7 +584,15 @@ class InvoiceService:
         )
 
     def _refresh_overdue(self, repo: InvoiceRepository, now: datetime) -> None:
-        for summary in repo.search_invoices(statuses=(InvoiceStatus.ISSUED.value, InvoiceStatus.SENT.value, InvoiceStatus.VIEWED.value, InvoiceStatus.PARTIALLY_PAID.value), outstanding_only=True):
+        for summary in repo.search_invoices(
+            statuses=(
+                InvoiceStatus.ISSUED.value,
+                InvoiceStatus.SENT.value,
+                InvoiceStatus.VIEWED.value,
+                InvoiceStatus.PARTIALLY_PAID.value,
+            ),
+            outstanding_only=True,
+        ):
             if summary.due_at and self._as_utc(summary.due_at) < now:
                 invoice = repo.get_invoice(summary.id)
                 if invoice is not None:

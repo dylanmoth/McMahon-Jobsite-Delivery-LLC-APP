@@ -109,17 +109,13 @@ class UserManagementService:
     def users(self, query: str = "", status: str | None = None) -> list[UserRow]:
         self._require_manage()
         with self.factory() as session:
-            users = UserManagementRepository(
-                session, self.organization_id
-            ).users(query, status)
+            users = UserManagementRepository(session, self.organization_id).users(query, status)
             return [self._user_row(user) for user in users]
 
     def user(self, user_id: str) -> UserDetails:
         self._require_manage()
         with self.factory() as session:
-            user = UserManagementRepository(
-                session, self.organization_id
-            ).user(user_id)
+            user = UserManagementRepository(session, self.organization_id).user(user_id)
             if user is None:
                 raise ValidationError("The selected user no longer exists.")
             return self._details(user)
@@ -127,17 +123,13 @@ class UserManagementService:
     def roles(self) -> list[RoleChoice]:
         self._require_manage()
         with self.factory() as session:
-            roles = UserManagementRepository(
-                session, self.organization_id
-            ).roles()
+            roles = UserManagementRepository(session, self.organization_id).roles()
             return [self._role_choice(role) for role in roles]
 
     def permissions(self) -> list[PermissionChoice]:
         self._require_manage()
         with self.factory() as session:
-            permissions = UserManagementRepository(
-                session, self.organization_id
-            ).permissions()
+            permissions = UserManagementRepository(session, self.organization_id).permissions()
             return [
                 PermissionChoice(
                     permission.id,
@@ -181,9 +173,7 @@ class UserManagementService:
                 raise ValidationError("That username is already in use.")
 
             if email and repo.email_exists(email):
-                raise ValidationError(
-                    "That email address is already assigned to another user."
-                )
+                raise ValidationError("That email address is already assigned to another user.")
 
             user = User(
                 organization_id=self.organization_id,
@@ -251,19 +241,14 @@ class UserManagementService:
                 raise ValidationError("The selected user no longer exists.")
 
             if email and repo.email_exists(email, user.id):
-                raise ValidationError(
-                    "That email address is already assigned to another user."
-                )
+                raise ValidationError("That email address is already assigned to another user.")
 
             admin_role = repo.role_by_code("admin")
-            is_currently_admin = (
-                admin_role is not None
-                and any(link.role_id == admin_role.id for link in user.roles)
+            is_currently_admin = admin_role is not None and any(
+                link.role_id == admin_role.id for link in user.roles
             )
             removing_admin = (
-                is_currently_admin
-                and admin_role is not None
-                and admin_role.id not in role_ids
+                is_currently_admin and admin_role is not None and admin_role.id not in role_ids
             )
             disabling_admin = status != "active" and is_currently_admin
 
@@ -369,8 +354,7 @@ class UserManagementService:
 
             if role.code == "admin":
                 permission_by_id = {
-                    permission.id: permission.code
-                    for permission in repo.permissions()
+                    permission.id: permission.code for permission in repo.permissions()
                 }
                 selected_codes = {
                     permission_by_id[permission_id]
@@ -405,9 +389,9 @@ class UserManagementService:
             raise ValidationError("You do not have permission to view the audit log.")
 
         with self.factory() as session:
-            rows = UserManagementRepository(
-                session, self.organization_id
-            ).audit_events(query, event_type, limit)
+            rows = UserManagementRepository(session, self.organization_id).audit_events(
+                query, event_type, limit
+            )
 
             results: list[AuditRow] = []
 
@@ -431,15 +415,11 @@ class UserManagementService:
             return []
 
         with self.factory() as session:
-            return UserManagementRepository(
-                session, self.organization_id
-            ).audit_event_types()
+            return UserManagementRepository(session, self.organization_id).audit_event_types()
 
     def profile(self) -> UserDetails:
         with self.factory() as session:
-            user = UserManagementRepository(
-                session, self.organization_id
-            ).user(self.actor_user_id)
+            user = UserManagementRepository(session, self.organization_id).user(self.actor_user_id)
 
             if user is None:
                 raise ValidationError("Your account no longer exists.")
@@ -472,9 +452,7 @@ class UserManagementService:
                 raise ValidationError("Your account no longer exists.")
 
             if email and repo.email_exists(email, user.id):
-                raise ValidationError(
-                    "That email address is already assigned to another user."
-                )
+                raise ValidationError("That email address is already assigned to another user.")
 
             user.display_name = display_name
             user.first_name = first_name.strip() or None
@@ -502,9 +480,7 @@ class UserManagementService:
             try:
                 self.hasher.verify(user.password_hash, current_password)
             except VerifyMismatchError as exc:
-                raise AuthenticationError(
-                    "Your current password is incorrect."
-                ) from exc
+                raise AuthenticationError("Your current password is incorrect.") from exc
 
             user.password_hash = self.hasher.hash(new_password)
             user.password_changed_at = datetime.now(UTC)
@@ -608,11 +584,7 @@ class UserManagementService:
     @staticmethod
     def _user_row(user: User) -> UserRow:
         roles = tuple(sorted(link.role.name for link in user.roles))
-        active_devices = sum(
-            1
-            for device in user.devices
-            if device.revoked_at is None
-        )
+        active_devices = sum(1 for device in user.devices if device.revoked_at is None)
 
         return UserRow(
             user.id,

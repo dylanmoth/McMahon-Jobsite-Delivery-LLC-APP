@@ -45,5 +45,7 @@ def current_revision(engine: Engine) -> str | None:
     if "alembic_version" not in inspector.get_table_names():
         return None
     with engine.connect() as connection:
-        value = connection.exec_driver_sql("SELECT version_num FROM alembic_version").scalar_one_or_none()
+        value = connection.exec_driver_sql(
+            "SELECT version_num FROM alembic_version"
+        ).scalar_one_or_none()
         return str(value) if value is not None else None

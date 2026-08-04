@@ -1,12 +1,15 @@
-# Dispatch Center v0.6.0 Test Report
+# McMahon Dispatch v1.2.0 Validation Report
 
-## Automated validation completed
+## Completed in the build environment
 
-- Full project test suite: 71 passed.
-- Python bytecode compilation: all source and test files compiled successfully.
-- Dispatch tests cover job persistence, assignments, conflict detection, explicit overrides, reassignment history, validated status progression, waiting events, resource release, calendar moves, calendar conflict blocking, status validation, and read-only permissions.
-- Existing tests initialize fresh SQLite databases through the project migration/bootstrap path.
+- Python bytecode compilation completed for `src`, `tests`, and `migrations`.
+- 90 non-Qt automated tests passed:
+  - 68 database, schema, status, dashboard, customer, pricing, quote, and dispatch tests
+  - 14 fleet, invoice, reporting, settings, and formatting tests
+  - 8 authentication and user-management tests
+- Black formatting completed across the full Python codebase.
+- The update archive was checked for excluded local data and cache files.
 
 ## Environment limitation
 
-The build container does not include PySide6, so the graphical interface could not be launched in this environment. The PySide6 screens require final runtime/UAT verification on the Windows computer where McMahon Dispatch is installed.
+The validation environment does not include PySide6, so Qt widget tests and a full graphical launch could not be performed here. Run the complete test suite and perform Windows interface testing after installing the patch.

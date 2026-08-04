@@ -1,0 +1,74 @@
+/* Shared commercial UI polish. Mode-specific colors remain in light.qss/dark.qss. */
+QMainWindow QWidget#appShell {
+    border: none;
+}
+
+QFrame#topNavigationBar {
+    min-height: 52px;
+}
+
+QFrame#pageHeader {
+    border: none;
+    background: transparent;
+}
+
+QFrame#sectionCard {
+    border-radius: 12px;
+}
+
+QLabel#cardTitle {
+    font-size: 12pt;
+    font-weight: 700;
+}
+
+QPushButton {
+    min-height: 18px;
+}
+
+QLineEdit,
+QComboBox,
+QSpinBox,
+QDoubleSpinBox,
+QDateEdit,
+QDateTimeEdit,
+QTextEdit,
+QPlainTextEdit {
+    min-height: 20px;
+}
+
+QTableWidget,
+QTableView,
+QTreeWidget,
+QListWidget {
+    selection-behavior: select-rows;
+}
+
+QTableCornerButton::section {
+    border: none;
+}
+
+QHeaderView::section {
+    font-weight: 700;
+}
+
+QToolTip {
+    padding: 6px 8px;
+    border-radius: 6px;
+}
+
+QMenu {
+    padding: 6px;
+}
+
+QMenu::item {
+    padding: 7px 24px 7px 10px;
+    border-radius: 5px;
+}
+
+QDialogButtonBox QPushButton {
+    min-width: 88px;
+}
+
+QSplitter::handle:hover {
+    background: #F97316;
+}

@@ -21,6 +21,7 @@ from mcmahon_dispatch.repositories.dashboard_repository import (
     NotificationItem,
     RecentCustomerItem,
 )
+from mcmahon_dispatch.core.formatting import format_currency
 from mcmahon_dispatch.services.auth_service import AuthenticatedUser
 from mcmahon_dispatch.services.dashboard_service import DashboardService
 from mcmahon_dispatch.ui.widgets.dashboard_panel import ClickableFrame, DashboardPanel
@@ -32,7 +33,9 @@ class DashboardPage(QWidget):
     drilldown_requested = Signal(str)
     quick_action_requested = Signal(str)
 
-    def __init__(self, service: DashboardService, user: AuthenticatedUser, refresh_seconds: int) -> None:
+    def __init__(
+        self, service: DashboardService, user: AuthenticatedUser, refresh_seconds: int
+    ) -> None:
         super().__init__()
         self.service = service
         self.user = user
@@ -107,7 +110,9 @@ class DashboardPage(QWidget):
         self.chart_grid.setHorizontalSpacing(14)
         self.chart_grid.setVerticalSpacing(14)
 
-        self.quick_actions_panel = DashboardPanel("Quick Actions", "Start the most common workflows")
+        self.quick_actions_panel = DashboardPanel(
+            "Quick Actions", "Start the most common workflows"
+        )
         quick_actions = (
             ("New Quote", "new_quote", "primaryAction"),
             ("New Job", "new_job", "quickAction"),
@@ -121,7 +126,9 @@ class DashboardPage(QWidget):
             button = QPushButton(label)
             button.setObjectName(object_name)
             button.setMinimumHeight(42)
-            button.clicked.connect(lambda _checked=False, action=key: self.quick_action_requested.emit(action))
+            button.clicked.connect(
+                lambda _checked=False, action=key: self.quick_action_requested.emit(action)
+            )
             action_grid.addWidget(button, index // 2, index % 2)
         self.quick_actions_panel.body.addLayout(action_grid)
 
@@ -299,7 +306,7 @@ class DashboardPage(QWidget):
 
     @staticmethod
     def _money(cents: int) -> str:
-        return f"${cents / 100:,.2f}"
+        return format_currency(cents)
 
     @staticmethod
     def _friendly_date(value: datetime) -> str:
@@ -322,12 +329,16 @@ class DashboardPage(QWidget):
     def _reflow(self) -> None:
         self._clear_layout(self.metric_grid)
         for index, card in enumerate(self.cards.values()):
-            self.metric_grid.addWidget(card, index // self._metric_columns, index % self._metric_columns)
+            self.metric_grid.addWidget(
+                card, index // self._metric_columns, index % self._metric_columns
+            )
 
         self._clear_layout(self.chart_grid)
         chart_columns = 2 if self.width() >= 1050 else 1
         self.chart_grid.addWidget(self.revenue_panel, 0, 0)
-        self.chart_grid.addWidget(self.profit_panel, 0 if chart_columns == 2 else 1, 1 if chart_columns == 2 else 0)
+        self.chart_grid.addWidget(
+            self.profit_panel, 0 if chart_columns == 2 else 1, 1 if chart_columns == 2 else 0
+        )
         self.chart_grid.setColumnStretch(0, 1)
         if chart_columns == 2:
             self.chart_grid.setColumnStretch(1, 1)
@@ -340,7 +351,9 @@ class DashboardPage(QWidget):
             self.activity_panel,
         )
         for index, panel in enumerate(panels):
-            self.lower_grid.addWidget(panel, index // self._lower_columns, index % self._lower_columns)
+            self.lower_grid.addWidget(
+                panel, index // self._lower_columns, index % self._lower_columns
+            )
         for column in range(self._lower_columns):
             self.lower_grid.setColumnStretch(column, 1)
 

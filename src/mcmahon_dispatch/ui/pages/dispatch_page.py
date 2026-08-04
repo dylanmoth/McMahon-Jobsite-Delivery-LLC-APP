@@ -41,6 +41,7 @@ from PySide6.QtWidgets import (
 )
 
 from mcmahon_dispatch.core.enums import JobStatus
+from mcmahon_dispatch.core.formatting import format_currency
 from mcmahon_dispatch.core.exceptions import ValidationError
 from mcmahon_dispatch.repositories.dispatch_repository import (
     Choice,
@@ -76,8 +77,6 @@ def _local_text(value: datetime | None, *, include_date: bool = True) -> str:
     return local.strftime("%b %d, %Y · %I:%M %p" if include_date else "%I:%M %p")
 
 
-
-
 def _qdate(value: date) -> QDate:
     return QDate(value.year, value.month, value.day)
 
@@ -95,7 +94,7 @@ def _python_datetime(value: QDateTime) -> datetime:
 
 
 def _money(cents: int) -> str:
-    return f"${cents / 100:,.2f}"
+    return format_currency(cents)
 
 
 def _display_assignment(record: DispatchJobRecord):
@@ -365,7 +364,9 @@ class JobEditorDialog(QDialog):
             self.status.addItem(_label(record.status), record.status)
         if record is not None:
             self.status.setEnabled(False)
-            self.status.setToolTip("Use the validated status workflow on the Dispatch board to change status.")
+            self.status.setToolTip(
+                "Use the validated status workflow on the Dispatch board to change status."
+            )
         self.priority = QComboBox()
         for value in ("low", "normal", "high", "urgent"):
             self.priority.addItem(value.title(), value)
@@ -377,9 +378,15 @@ class JobEditorDialog(QDialog):
         self.window_end = QDateTimeEdit()
         self.window_end.setCalendarPopup(True)
         self.window_end.setDisplayFormat("MMM d, yyyy h:mm AP")
-        start = datetime.now().astimezone().replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
-        self.window_start.setDateTime(_qdatetime(record.requested_window_start if record else None, start))
-        self.window_end.setDateTime(_qdatetime(record.requested_window_end if record else None, start + timedelta(hours=2)))
+        start = datetime.now().astimezone().replace(minute=0, second=0, microsecond=0) + timedelta(
+            hours=1
+        )
+        self.window_start.setDateTime(
+            _qdatetime(record.requested_window_start if record else None, start)
+        )
+        self.window_end.setDateTime(
+            _qdatetime(record.requested_window_end if record else None, start + timedelta(hours=2))
+        )
 
         self.promised_pickup = QDateTimeEdit()
         self.promised_pickup.setCalendarPopup(True)
@@ -387,8 +394,12 @@ class JobEditorDialog(QDialog):
         self.promised_delivery = QDateTimeEdit()
         self.promised_delivery.setCalendarPopup(True)
         self.promised_delivery.setDisplayFormat("MMM d, yyyy h:mm AP")
-        self.promised_pickup.setDateTime(_qdatetime(record.promised_pickup_at if record else None, start))
-        self.promised_delivery.setDateTime(_qdatetime(record.promised_delivery_at if record else None, start + timedelta(hours=2)))
+        self.promised_pickup.setDateTime(
+            _qdatetime(record.promised_pickup_at if record else None, start)
+        )
+        self.promised_delivery.setDateTime(
+            _qdatetime(record.promised_delivery_at if record else None, start + timedelta(hours=2))
+        )
 
         self.planned_miles = QDoubleSpinBox()
         self.planned_miles.setRange(0, 10000)
@@ -568,11 +579,15 @@ class AssignmentDialog(QDialog):
         self.driver = QComboBox()
         self.driver.addItem("Select driver…", "")
         for choice in drivers:
-            self.driver.addItem(f"{choice.label} · {choice.status.replace('_', ' ').title()}", choice.id)
+            self.driver.addItem(
+                f"{choice.label} · {choice.status.replace('_', ' ').title()}", choice.id
+            )
         self.vehicle = QComboBox()
         self.vehicle.addItem("Select vehicle…", "")
         for choice in vehicles:
-            self.vehicle.addItem(f"{choice.label} · {choice.status.replace('_', ' ').title()}", choice.id)
+            self.vehicle.addItem(
+                f"{choice.label} · {choice.status.replace('_', ' ').title()}", choice.id
+            )
 
         start, end = service.suggested_assignment_window(record)
         self.starts_at = QDateTimeEdit(_qdatetime(start))
@@ -586,7 +601,9 @@ class AssignmentDialog(QDialog):
 
         if record.assignment is not None:
             self.driver.setCurrentIndex(max(0, self.driver.findData(record.assignment.driver_id)))
-            self.vehicle.setCurrentIndex(max(0, self.vehicle.findData(record.assignment.vehicle_id)))
+            self.vehicle.setCurrentIndex(
+                max(0, self.vehicle.findData(record.assignment.vehicle_id))
+            )
             self.starts_at.setDateTime(_qdatetime(record.assignment.starts_at))
             self.ends_at.setDateTime(_qdatetime(record.assignment.ends_at))
 
@@ -632,7 +649,9 @@ class AssignmentDialog(QDialog):
             QMessageBox.warning(self, "Assignment", str(exc))
             return []
         if not values:
-            self.conflicts.setPlainText("No driver, vehicle, availability, or overlap conflicts found.")
+            self.conflicts.setPlainText(
+                "No driver, vehicle, availability, or overlap conflicts found."
+            )
         else:
             self.conflicts.setPlainText("\n\n".join(f"• {value.message}" for value in values))
         return values
@@ -664,7 +683,9 @@ class StatusChangeDialog(QDialog):
         transition.setObjectName("statusTransition")
         transition.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.requirements = QCheckBox(self._confirmation_text(current_status, target_status))
-        self.requirements.setChecked(target_status in {JobStatus.WAITING.value, JobStatus.CANCELLED.value})
+        self.requirements.setChecked(
+            target_status in {JobStatus.WAITING.value, JobStatus.CANCELLED.value}
+        )
         self.note = QTextEdit()
         self.note.setFixedHeight(80)
         self.reason = QTextEdit()
@@ -712,7 +733,9 @@ class StatusChangeDialog(QDialog):
             return "The open wait timer stops and the charge recommendation recalculates."
         if target == JobStatus.CANCELLED.value:
             return "Cancellation requires a reason. Pricing and customer communication should be reviewed."
-        return "The change is recorded in the permanent job timeline with the current user and time."
+        return (
+            "The change is recorded in the permanent job timeline with the current user and time."
+        )
 
     def request(self) -> StatusChangeRequest:
         return StatusChangeRequest(
@@ -922,7 +945,9 @@ class JobDetailPanel(QFrame):
         self.title.setObjectName("panelTitle")
         self.number = QLabel("Select a job")
         self.number.setObjectName("quoteNumber")
-        self.summary = QLabel("Select a card or row to inspect assignment, route, schedule, alerts, and timeline.")
+        self.summary = QLabel(
+            "Select a card or row to inspect assignment, route, schedule, alerts, and timeline."
+        )
         self.summary.setWordWrap(True)
         self.summary.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self.alerts = QTextEdit()
@@ -933,11 +958,17 @@ class JobDetailPanel(QFrame):
         self.timeline.setMinimumHeight(180)
         self.edit_button = QPushButton("Edit job")
         self.edit_button.setObjectName("primary")
-        self.edit_button.clicked.connect(lambda _checked=False: self.current_id and self.edit_requested.emit(self.current_id))
+        self.edit_button.clicked.connect(
+            lambda _checked=False: self.current_id and self.edit_requested.emit(self.current_id)
+        )
         self.assign_button = QPushButton("Assign driver / vehicle")
-        self.assign_button.clicked.connect(lambda _checked=False: self.current_id and self.assign_requested.emit(self.current_id))
+        self.assign_button.clicked.connect(
+            lambda _checked=False: self.current_id and self.assign_requested.emit(self.current_id)
+        )
         self.status_button = QPushButton("Change status")
-        self.status_button.clicked.connect(lambda _checked=False: self.current_id and self.status_requested.emit(self.current_id))
+        self.status_button.clicked.connect(
+            lambda _checked=False: self.current_id and self.status_requested.emit(self.current_id)
+        )
         for button in (self.edit_button, self.assign_button, self.status_button):
             button.setEnabled(False)
         layout = QVBoxLayout(self)
@@ -1275,7 +1306,9 @@ class CalendarPanel(QWidget):
                 grouped_by_driver[driver].append(view)
             if not grouped_by_driver:
                 grouped_by_driver["Unassigned"] = []
-            for driver_name in sorted(grouped_by_driver, key=lambda value: (value == "Unassigned", value)):
+            for driver_name in sorted(
+                grouped_by_driver, key=lambda value: (value == "Unassigned", value)
+            ):
                 lane = DateDropLane(
                     self.anchor,
                     f"{driver_name}\n{self.anchor.strftime('%b %d')}",
@@ -1418,7 +1451,9 @@ class DispatchPage(QWidget):
 
         title = QLabel("Dispatch Center")
         title.setObjectName("pageTitle")
-        subtitle = QLabel("Schedule, assign, and move every delivery through a validated operational workflow.")
+        subtitle = QLabel(
+            "Schedule, assign, and move every delivery through a validated operational workflow."
+        )
         subtitle.setObjectName("panelSubtitle")
         self.search = QLineEdit()
         self.search.setPlaceholderText("Search job, customer, service, or notes")
@@ -1555,7 +1590,18 @@ class DispatchPage(QWidget):
     def _build_jobs_table(self) -> QTableWidget:
         table = QTableWidget(0, 10)
         table.setHorizontalHeaderLabels(
-            ["Job", "Customer", "Status", "Priority", "Window", "Driver", "Vehicle", "Pickup", "Delivery", "Alerts"]
+            [
+                "Job",
+                "Customer",
+                "Status",
+                "Priority",
+                "Window",
+                "Driver",
+                "Vehicle",
+                "Pickup",
+                "Delivery",
+                "Alerts",
+            ]
         )
         table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -1575,13 +1621,28 @@ class DispatchPage(QWidget):
         page = QWidget()
         self.drivers_table = QTableWidget(0, 8)
         self.drivers_table.setHorizontalHeaderLabels(
-            ["Number", "Driver", "Status", "Phone", "Email", "License State", "License Expires", "Notes"]
+            [
+                "Number",
+                "Driver",
+                "Status",
+                "Phone",
+                "Email",
+                "License State",
+                "License Expires",
+                "Notes",
+            ]
         )
         self.drivers_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.drivers_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.drivers_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.drivers_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        self.drivers_table.horizontalHeader().setSectionResizeMode(7, QHeaderView.ResizeMode.Stretch)
+        self.drivers_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
+        )
+        self.drivers_table.horizontalHeader().setSectionResizeMode(
+            1, QHeaderView.ResizeMode.Stretch
+        )
+        self.drivers_table.horizontalHeader().setSectionResizeMode(
+            7, QHeaderView.ResizeMode.Stretch
+        )
         add = QPushButton("New Driver")
         add.setObjectName("primary")
         add.setEnabled(self.service.can_manage)
@@ -1602,12 +1663,27 @@ class DispatchPage(QWidget):
         page = QWidget()
         self.vehicles_table = QTableWidget(0, 10)
         self.vehicles_table.setHorizontalHeaderLabels(
-            ["Number", "Vehicle", "Status", "Cargo L", "Cargo W", "Cargo H", "Payload", "Cost/Mile", "Registration", "Insurance"]
+            [
+                "Number",
+                "Vehicle",
+                "Status",
+                "Cargo L",
+                "Cargo W",
+                "Cargo H",
+                "Payload",
+                "Cost/Mile",
+                "Registration",
+                "Insurance",
+            ]
         )
         self.vehicles_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.vehicles_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.vehicles_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-        self.vehicles_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self.vehicles_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.ResizeToContents
+        )
+        self.vehicles_table.horizontalHeader().setSectionResizeMode(
+            1, QHeaderView.ResizeMode.Stretch
+        )
         add = QPushButton("New Vehicle")
         add.setObjectName("primary")
         add.setEnabled(self.service.can_manage)
@@ -1633,7 +1709,9 @@ class DispatchPage(QWidget):
 
     def refresh(self) -> None:
         try:
-            self.customer_choices, self.driver_choices, self.vehicle_choices = self.service.choices()
+            self.customer_choices, self.driver_choices, self.vehicle_choices = (
+                self.service.choices()
+            )
             selected_driver = str(self.driver_filter.currentData() or "")
             self._refresh_driver_filter(selected_driver)
             driver_id = str(self.driver_filter.currentData() or "") or None
@@ -1655,7 +1733,9 @@ class DispatchPage(QWidget):
         self._render_vehicles()
         self._refresh_calendar()
         if self.current_job_id:
-            matching = next((item for item in self.all_jobs if item.record.id == self.current_job_id), None)
+            matching = next(
+                (item for item in self.all_jobs if item.record.id == self.current_job_id), None
+            )
             if matching:
                 self.detail.show_job(matching)
 
@@ -1739,7 +1819,11 @@ class DispatchPage(QWidget):
                 str(record.cargo_height_inches or ""),
                 str(record.payload_pounds or ""),
                 _money(record.cost_per_mile_cents or 0),
-                record.registration_expires_on.isoformat() if record.registration_expires_on else "",
+                (
+                    record.registration_expires_on.isoformat()
+                    if record.registration_expires_on
+                    else ""
+                ),
                 record.insurance_expires_on.isoformat() if record.insurance_expires_on else "",
             )
             for column, value in enumerate(values):
@@ -1769,13 +1853,13 @@ class DispatchPage(QWidget):
             existing_ids = {view.record.id for view in values}
             for view in queue_candidates:
                 record = view.record
-                should_queue = (
-                    record.status not in {JobStatus.COMPLETED.value, JobStatus.CANCELLED.value}
-                    and (
-                        record.assignment is None
-                        or record.requested_window_start is None
-                        or record.status == JobStatus.ACCEPTED.value
-                    )
+                should_queue = record.status not in {
+                    JobStatus.COMPLETED.value,
+                    JobStatus.CANCELLED.value,
+                } and (
+                    record.assignment is None
+                    or record.requested_window_start is None
+                    or record.status == JobStatus.ACCEPTED.value
                 )
                 if should_queue and record.id not in existing_ids:
                     values.append(view)
@@ -1838,11 +1922,17 @@ class DispatchPage(QWidget):
             QMessageBox.warning(self, "Assignment", str(exc))
             return
         if not self.driver_choices:
-            QMessageBox.information(self, "Assignment", "Create a driver from the Drivers tab before assigning this job.")
+            QMessageBox.information(
+                self,
+                "Assignment",
+                "Create a driver from the Drivers tab before assigning this job.",
+            )
             self.tabs.setCurrentIndex(3)
             return
         if not self.vehicle_choices:
-            QMessageBox.information(self, "Assignment", "Create a vehicle from the Fleet tab before assigning this job.")
+            QMessageBox.information(
+                self, "Assignment", "Create a vehicle from the Fleet tab before assigning this job."
+            )
             self.tabs.setCurrentIndex(4)
             return
         dialog = AssignmentDialog(
@@ -1883,16 +1973,27 @@ class DispatchPage(QWidget):
         except ValidationError as exc:
             QMessageBox.warning(self, "Status", str(exc))
             return
-        allowed = [status for status in ALLOWED_TRANSITIONS.get(view.record.status, frozenset()) if status in STATUS_LABELS]
+        allowed = [
+            status
+            for status in ALLOWED_TRANSITIONS.get(view.record.status, frozenset())
+            if status in STATUS_LABELS
+        ]
         if not allowed:
-            QMessageBox.information(self, "Status", "This job has no available forward status transitions.")
+            QMessageBox.information(
+                self, "Status", "This job has no available forward status transitions."
+            )
             return
         picker = QDialog(self)
         picker.setWindowTitle("Choose next status")
         buttons_layout = QVBoxLayout()
         for status in sorted(allowed, key=lambda value: list(STATUS_LABELS).index(value)):
             button = QPushButton(_label(status))
-            button.clicked.connect(lambda _checked=False, value=status: (picker.setProperty("status", value), picker.accept()))
+            button.clicked.connect(
+                lambda _checked=False, value=status: (
+                    picker.setProperty("status", value),
+                    picker.accept(),
+                )
+            )
             buttons_layout.addWidget(button)
         cancel = QPushButton("Cancel")
         cancel.clicked.connect(picker.reject)
@@ -1955,9 +2056,7 @@ class DispatchPage(QWidget):
         box.setIcon(icon)
         box.setWindowTitle("Reschedule job")
         box.setText(explanation)
-        box.setStandardButtons(
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel
-        )
+        box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel)
         box.setDefaultButton(QMessageBox.StandardButton.Cancel)
         if box.exec() != QMessageBox.StandardButton.Yes:
             return

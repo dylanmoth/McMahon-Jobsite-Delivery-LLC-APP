@@ -1,11 +1,38 @@
+McMahon Dispatch v1.2.0 - Refactor & Commercial Polish
+=======================================================
+
+This release is a full source-code refactor. It does not require a database migration and does not intentionally change business behavior.
+
+BEFORE INSTALLING
 1. Close McMahon Dispatch.
-2. Back up the current McMahonDispatch project folder.
-3. Copy all contents of this patch into the project root and replace matching files.
-4. Run:
+2. Make a backup copy of your current McMahonDispatch project folder.
+3. Do not delete the application data stored under Windows Local AppData.
+
+INSTALL
+1. Extract this ZIP.
+2. Open the extracted McMahonDispatch-Refactor-v1.2.0 folder.
+3. Copy everything inside that folder.
+4. Paste it into your existing project folder:
+
+   C:\Users\thedy\OneDrive\Desktop\MJD BUSINESS\McMahonDispatch
+
+5. Choose "Replace the files in the destination".
+
+VERIFY AND RUN
+Open PowerShell and run:
 
 cd "C:\Users\thedy\OneDrive\Desktop\MJD BUSINESS\McMahonDispatch"
+
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 .\.venv\Scripts\python.exe -m pytest
 .\.venv\Scripts\python.exe -m mcmahon_dispatch
 
-No Alembic migration is required.
+GITHUB AFTER SUCCESSFUL TESTING
+
+git status
+git add .
+git commit -m "Refactor application and add commercial UI polish v1.2.0"
+git push
+
+ROLLBACK
+If the application does not pass testing, close it and restore the backup project folder. Your local application database is separate from the source tree and no migration is required by this release.

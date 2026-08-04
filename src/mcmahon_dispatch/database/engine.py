@@ -17,9 +17,7 @@ class Database:
     def __init__(self, database_url: str) -> None:
         self.database_url = database_url
         connect_args = (
-            {"check_same_thread": False, "timeout": 30}
-            if database_url.startswith("sqlite")
-            else {}
+            {"check_same_thread": False, "timeout": 30} if database_url.startswith("sqlite") else {}
         )
         self.engine: Engine = create_engine(
             database_url,

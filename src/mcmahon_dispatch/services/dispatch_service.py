@@ -22,7 +22,6 @@ from mcmahon_dispatch.repositories.dispatch_repository import (
 )
 
 
-
 DRIVER_STATUSES = frozenset(status.value for status in DriverStatus)
 VEHICLE_STATUSES = frozenset(status.value for status in VehicleStatus)
 
@@ -54,17 +53,62 @@ STATUS_LABELS: dict[str, str] = {
 }
 
 ALLOWED_TRANSITIONS: dict[str, frozenset[str]] = {
-    JobStatus.DRAFT.value: frozenset({JobStatus.ACCEPTED.value, JobStatus.SCHEDULED.value, JobStatus.CANCELLED.value}),
-    JobStatus.QUOTED.value: frozenset({JobStatus.ACCEPTED.value, JobStatus.SCHEDULED.value, JobStatus.CANCELLED.value}),
-    JobStatus.ACCEPTED.value: frozenset({JobStatus.SCHEDULED.value, JobStatus.CANCELLED.value, JobStatus.ON_HOLD.value}),
-    JobStatus.SCHEDULED.value: frozenset({JobStatus.PICKING_UP.value, JobStatus.CANCELLED.value, JobStatus.ON_HOLD.value}),
-    JobStatus.PICKING_UP.value: frozenset({JobStatus.WAITING.value, JobStatus.IN_TRANSIT.value, JobStatus.CANCELLED.value, JobStatus.FAILED_PICKUP.value, JobStatus.ON_HOLD.value}),
-    JobStatus.WAITING.value: frozenset({JobStatus.PICKING_UP.value, JobStatus.IN_TRANSIT.value, JobStatus.CANCELLED.value, JobStatus.FAILED_PICKUP.value, JobStatus.ON_HOLD.value}),
-    JobStatus.IN_TRANSIT.value: frozenset({JobStatus.DELIVERED.value, JobStatus.CANCELLED.value, JobStatus.FAILED_DELIVERY.value, JobStatus.RETURN.value, JobStatus.ON_HOLD.value}),
-    JobStatus.DELIVERED.value: frozenset({JobStatus.COMPLETED.value, JobStatus.CANCELLED.value, JobStatus.RETURN.value}),
-    JobStatus.ON_HOLD.value: frozenset({JobStatus.SCHEDULED.value, JobStatus.PICKING_UP.value, JobStatus.IN_TRANSIT.value, JobStatus.CANCELLED.value}),
-    JobStatus.FAILED_PICKUP.value: frozenset({JobStatus.SCHEDULED.value, JobStatus.CANCELLED.value}),
-    JobStatus.FAILED_DELIVERY.value: frozenset({JobStatus.IN_TRANSIT.value, JobStatus.RETURN.value, JobStatus.CANCELLED.value}),
+    JobStatus.DRAFT.value: frozenset(
+        {JobStatus.ACCEPTED.value, JobStatus.SCHEDULED.value, JobStatus.CANCELLED.value}
+    ),
+    JobStatus.QUOTED.value: frozenset(
+        {JobStatus.ACCEPTED.value, JobStatus.SCHEDULED.value, JobStatus.CANCELLED.value}
+    ),
+    JobStatus.ACCEPTED.value: frozenset(
+        {JobStatus.SCHEDULED.value, JobStatus.CANCELLED.value, JobStatus.ON_HOLD.value}
+    ),
+    JobStatus.SCHEDULED.value: frozenset(
+        {JobStatus.PICKING_UP.value, JobStatus.CANCELLED.value, JobStatus.ON_HOLD.value}
+    ),
+    JobStatus.PICKING_UP.value: frozenset(
+        {
+            JobStatus.WAITING.value,
+            JobStatus.IN_TRANSIT.value,
+            JobStatus.CANCELLED.value,
+            JobStatus.FAILED_PICKUP.value,
+            JobStatus.ON_HOLD.value,
+        }
+    ),
+    JobStatus.WAITING.value: frozenset(
+        {
+            JobStatus.PICKING_UP.value,
+            JobStatus.IN_TRANSIT.value,
+            JobStatus.CANCELLED.value,
+            JobStatus.FAILED_PICKUP.value,
+            JobStatus.ON_HOLD.value,
+        }
+    ),
+    JobStatus.IN_TRANSIT.value: frozenset(
+        {
+            JobStatus.DELIVERED.value,
+            JobStatus.CANCELLED.value,
+            JobStatus.FAILED_DELIVERY.value,
+            JobStatus.RETURN.value,
+            JobStatus.ON_HOLD.value,
+        }
+    ),
+    JobStatus.DELIVERED.value: frozenset(
+        {JobStatus.COMPLETED.value, JobStatus.CANCELLED.value, JobStatus.RETURN.value}
+    ),
+    JobStatus.ON_HOLD.value: frozenset(
+        {
+            JobStatus.SCHEDULED.value,
+            JobStatus.PICKING_UP.value,
+            JobStatus.IN_TRANSIT.value,
+            JobStatus.CANCELLED.value,
+        }
+    ),
+    JobStatus.FAILED_PICKUP.value: frozenset(
+        {JobStatus.SCHEDULED.value, JobStatus.CANCELLED.value}
+    ),
+    JobStatus.FAILED_DELIVERY.value: frozenset(
+        {JobStatus.IN_TRANSIT.value, JobStatus.RETURN.value, JobStatus.CANCELLED.value}
+    ),
     JobStatus.RETURN.value: frozenset({JobStatus.COMPLETED.value, JobStatus.CANCELLED.value}),
     JobStatus.COMPLETED.value: frozenset(),
     JobStatus.CANCELLED.value: frozenset(),
@@ -368,7 +412,11 @@ class DispatchService:
             job = repo.get_job_model(job_id)
             if job is None:
                 raise ValidationError("Job not found.")
-            if job.status not in {JobStatus.DRAFT.value, JobStatus.ACCEPTED.value, JobStatus.SCHEDULED.value}:
+            if job.status not in {
+                JobStatus.DRAFT.value,
+                JobStatus.ACCEPTED.value,
+                JobStatus.SCHEDULED.value,
+            }:
                 raise ValidationError("Operational jobs cannot be deleted. Cancel the job instead.")
             if repo.active_assignment(job.id) is not None:
                 raise ValidationError("Unassign the driver and vehicle before deleting the job.")
@@ -382,7 +430,9 @@ class DispatchService:
                 reason=normalized,
             )
 
-    def assignment_conflicts(self, job_id: str, request: AssignmentRequest) -> list[DispatchConflict]:
+    def assignment_conflicts(
+        self, job_id: str, request: AssignmentRequest
+    ) -> list[DispatchConflict]:
         request = self.validate_assignment_request(request)
         with self.factory() as session:
             repo = DispatchRepository(session, self.organization_id)
@@ -403,7 +453,10 @@ class DispatchService:
                         f"{driver.first_name} {driver.last_name} is marked {driver.status.replace('_', ' ')}.",
                     )
                 )
-            if vehicle.status in {"maintenance", "out_of_service", "inactive"} or not vehicle.active:
+            if (
+                vehicle.status in {"maintenance", "out_of_service", "inactive"}
+                or not vehicle.active
+            ):
                 conflicts.append(
                     DispatchConflict(
                         "vehicle_status",
@@ -424,7 +477,10 @@ class DispatchService:
                             job_id,
                         )
                     )
-                if job_record.promised_delivery_at and request.ends_at < job_record.promised_delivery_at:
+                if (
+                    job_record.promised_delivery_at
+                    and request.ends_at < job_record.promised_delivery_at
+                ):
                     conflicts.append(
                         DispatchConflict(
                             "promised_window",
@@ -441,7 +497,11 @@ class DispatchService:
                 ends_at=request.ends_at,
             ):
                 related = assignment.job
-                customer = related.customer.company_name if related and related.customer else "Unlinked customer"
+                customer = (
+                    related.customer.company_name
+                    if related and related.customer
+                    else "Unlinked customer"
+                )
                 label = "Driver" if kind == "driver" else "Vehicle"
                 conflicts.append(
                     DispatchConflict(
@@ -454,12 +514,16 @@ class DispatchService:
                 )
             return conflicts
 
-    def assign(self, job_id: str, request: AssignmentRequest, *, allow_conflicts: bool = False) -> str:
+    def assign(
+        self, job_id: str, request: AssignmentRequest, *, allow_conflicts: bool = False
+    ) -> str:
         self._require_manage()
         request = self.validate_assignment_request(request)
         conflicts = self.assignment_conflicts(job_id, request)
         if conflicts and not allow_conflicts:
-            raise ValidationError("Assignment has conflicts. Review and explicitly approve the override.")
+            raise ValidationError(
+                "Assignment has conflicts. Review and explicitly approve the override."
+            )
         now = datetime.now(UTC)
         with self.factory.begin() as session:
             repo = DispatchRepository(session, self.organization_id)
@@ -503,15 +567,23 @@ class DispatchService:
             vehicle.updated_by_id = self.user_id
             if previous_driver_id and previous_driver_id != request.driver_id:
                 previous_driver = session.get(Driver, previous_driver_id)
-                if previous_driver is not None and not repo.driver_has_active_assignment(previous_driver_id):
+                if previous_driver is not None and not repo.driver_has_active_assignment(
+                    previous_driver_id
+                ):
                     previous_driver.status = "available"
                     previous_driver.updated_by_id = self.user_id
             if previous_vehicle_id and previous_vehicle_id != request.vehicle_id:
                 previous_vehicle = session.get(Vehicle, previous_vehicle_id)
-                if previous_vehicle is not None and not repo.vehicle_has_active_assignment(previous_vehicle_id):
+                if previous_vehicle is not None and not repo.vehicle_has_active_assignment(
+                    previous_vehicle_id
+                ):
                     previous_vehicle.status = "available"
                     previous_vehicle.updated_by_id = self.user_id
-            if job.status in {JobStatus.DRAFT.value, JobStatus.QUOTED.value, JobStatus.ACCEPTED.value}:
+            if job.status in {
+                JobStatus.DRAFT.value,
+                JobStatus.QUOTED.value,
+                JobStatus.ACCEPTED.value,
+            }:
                 prior = job.status
                 job.status = JobStatus.SCHEDULED.value
                 repo.add_status_event(
@@ -557,7 +629,9 @@ class DispatchService:
             if driver is not None and not repo.driver_has_active_assignment(assignment.driver_id):
                 driver.status = "available"
                 driver.updated_by_id = self.user_id
-            if vehicle is not None and not repo.vehicle_has_active_assignment(assignment.vehicle_id):
+            if vehicle is not None and not repo.vehicle_has_active_assignment(
+                assignment.vehicle_id
+            ):
                 vehicle.status = "available"
                 vehicle.updated_by_id = self.user_id
             repo.audit(
@@ -605,7 +679,10 @@ class DispatchService:
                 wait = repo.open_wait(job_id)
                 if wait is not None:
                     wait.ended_at = now
-                    elapsed = max(0, math.ceil((now - (self._utc(wait.started_at) or now)).total_seconds() / 60))
+                    elapsed = max(
+                        0,
+                        math.ceil((now - (self._utc(wait.started_at) or now)).total_seconds() / 60),
+                    )
                     wait.wait_minutes = elapsed
                     sequence = wait.delay_sequence or 1
                     wait.recommended_charge_cents = (
@@ -639,10 +716,14 @@ class DispatchService:
                 )
                 driver = session.get(Driver, assignment.driver_id)
                 vehicle = session.get(Vehicle, assignment.vehicle_id)
-                if driver is not None and not repo.driver_has_active_assignment(assignment.driver_id):
+                if driver is not None and not repo.driver_has_active_assignment(
+                    assignment.driver_id
+                ):
                     driver.status = "available"
                     driver.updated_by_id = self.user_id
-                if vehicle is not None and not repo.vehicle_has_active_assignment(assignment.vehicle_id):
+                if vehicle is not None and not repo.vehicle_has_active_assignment(
+                    assignment.vehicle_id
+                ):
                     vehicle.status = "available"
                     vehicle.updated_by_id = self.user_id
             repo.add_status_event(
@@ -700,7 +781,9 @@ class DispatchService:
         self._require_manage()
         conflicts = self.reschedule_conflicts(job_id, target_date)
         if conflicts and not allow_conflicts:
-            raise ValidationError("Rescheduling creates assignment conflicts. Review and approve the override.")
+            raise ValidationError(
+                "Rescheduling creates assignment conflicts. Review and approve the override."
+            )
         with self.factory.begin() as session:
             repo = DispatchRepository(session, self.organization_id)
             job = repo.get_job_model(job_id)
@@ -758,9 +841,14 @@ class DispatchService:
             active_jobs=len(active),
             unassigned_jobs=sum(item.record.assignment is None for item in active),
             waiting_jobs=sum(item.record.status == JobStatus.WAITING.value for item in values),
-            overdue_jobs=sum(any(alert.code == "overdue" for alert in item.alerts) for item in values),
+            overdue_jobs=sum(
+                any(alert.code == "overdue" for alert in item.alerts) for item in values
+            ),
             scheduled_today=sum(
-                bool(item.record.requested_window_start and item.record.requested_window_start.date() == today)
+                bool(
+                    item.record.requested_window_start
+                    and item.record.requested_window_start.date() == today
+                )
                 for item in values
             ),
             completed_today=sum(
@@ -910,19 +998,26 @@ class DispatchService:
         alerts: list[DispatchAlert] = []
         now = datetime.now(UTC)
         if record.status in ACTIVE_STATUSES and record.assignment is None:
-            alerts.append(DispatchAlert("danger", "unassigned", "Driver and vehicle are not assigned."))
+            alerts.append(
+                DispatchAlert("danger", "unassigned", "Driver and vehicle are not assigned.")
+            )
         if (
             record.promised_delivery_at is not None
             and record.promised_delivery_at < now
-            and record.status not in {JobStatus.DELIVERED.value, JobStatus.COMPLETED.value, JobStatus.CANCELLED.value}
+            and record.status
+            not in {JobStatus.DELIVERED.value, JobStatus.COMPLETED.value, JobStatus.CANCELLED.value}
         ):
             alerts.append(DispatchAlert("danger", "overdue", "Promised delivery time has passed."))
         if not record.pickup_address:
             alerts.append(DispatchAlert("warning", "pickup_missing", "Pickup address is missing."))
         if not record.delivery_address:
-            alerts.append(DispatchAlert("warning", "delivery_missing", "Jobsite address is missing."))
+            alerts.append(
+                DispatchAlert("warning", "delivery_missing", "Jobsite address is missing.")
+            )
         if record.requested_window_start and record.requested_window_end and record.planned_minutes:
-            available = int((record.requested_window_end - record.requested_window_start).total_seconds() / 60)
+            available = int(
+                (record.requested_window_end - record.requested_window_start).total_seconds() / 60
+            )
             if record.planned_minutes > available:
                 alerts.append(
                     DispatchAlert(
@@ -932,12 +1027,27 @@ class DispatchService:
                     )
                 )
         if record.assignment is not None:
-            if record.assignment.driver_status in {"inactive", "unavailable", "off_duty", "time_off"}:
-                alerts.append(DispatchAlert("danger", "driver_unavailable", "Assigned driver is unavailable."))
+            if record.assignment.driver_status in {
+                "inactive",
+                "unavailable",
+                "off_duty",
+                "time_off",
+            }:
+                alerts.append(
+                    DispatchAlert("danger", "driver_unavailable", "Assigned driver is unavailable.")
+                )
             if record.assignment.vehicle_status in {"maintenance", "out_of_service", "inactive"}:
-                alerts.append(DispatchAlert("danger", "vehicle_unavailable", "Assigned vehicle is unavailable."))
+                alerts.append(
+                    DispatchAlert(
+                        "danger", "vehicle_unavailable", "Assigned vehicle is unavailable."
+                    )
+                )
         if self.can_view_financials and record.estimated_cost_cents > record.quoted_revenue_cents:
-            alerts.append(DispatchAlert("warning", "negative_margin", "Estimated direct cost exceeds quoted revenue."))
+            alerts.append(
+                DispatchAlert(
+                    "warning", "negative_margin", "Estimated direct cost exceeds quoted revenue."
+                )
+            )
         return alerts
 
     def _normalized_job_request(self, request: JobSaveRequest) -> JobSaveRequest:
@@ -1035,8 +1145,15 @@ class DispatchService:
                 raise ValidationError("Confirm delivery proof or enter an override reason.")
         if current_status == JobStatus.DELIVERED.value and target == JobStatus.COMPLETED.value:
             if not request.requirements_confirmed and not request.override_reason:
-                raise ValidationError("Confirm actuals and invoicing review or enter an override reason.")
-        if target in {JobStatus.CANCELLED.value, JobStatus.ON_HOLD.value, JobStatus.FAILED_PICKUP.value, JobStatus.FAILED_DELIVERY.value}:
+                raise ValidationError(
+                    "Confirm actuals and invoicing review or enter an override reason."
+                )
+        if target in {
+            JobStatus.CANCELLED.value,
+            JobStatus.ON_HOLD.value,
+            JobStatus.FAILED_PICKUP.value,
+            JobStatus.FAILED_DELIVERY.value,
+        }:
             if not request.reason:
                 raise ValidationError("A reason is required for this status change.")
 

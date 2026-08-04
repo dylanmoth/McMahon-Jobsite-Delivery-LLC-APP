@@ -135,7 +135,11 @@ class FleetRepository:
             stmt = stmt.where(MaintenanceRecord.vehicle_id == vehicle_id)
         rows = self.session.execute(
             stmt.order_by(
-                case((MaintenanceRecord.status == "overdue", 0), (MaintenanceRecord.status == "scheduled", 1), else_=2),
+                case(
+                    (MaintenanceRecord.status == "overdue", 0),
+                    (MaintenanceRecord.status == "scheduled", 1),
+                    else_=2,
+                ),
                 MaintenanceRecord.due_date.is_(None),
                 MaintenanceRecord.due_date,
                 MaintenanceRecord.created_at.desc(),
@@ -238,11 +242,18 @@ class FleetRepository:
             )
         )
         expired_docs = sum(
-            int(vehicle.registration_expires_on is not None and vehicle.registration_expires_on < as_of)
+            int(
+                vehicle.registration_expires_on is not None
+                and vehicle.registration_expires_on < as_of
+            )
             + int(vehicle.insurance_expires_on is not None and vehicle.insurance_expires_on < as_of)
             for vehicle in vehicles
         )
-        avg_mpg = Decimal(str(fuel_rows[1])).quantize(Decimal("0.01")) if fuel_rows[1] is not None else None
+        avg_mpg = (
+            Decimal(str(fuel_rows[1])).quantize(Decimal("0.01"))
+            if fuel_rows[1] is not None
+            else None
+        )
         return FleetSummary(
             vehicle_count=len(vehicles),
             available_count=sum(vehicle.status == "available" for vehicle in vehicles),

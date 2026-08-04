@@ -190,12 +190,8 @@ class QuoteRepository:
         self.session.execute(
             delete(QuoteCharge).where(QuoteCharge.quote_revision_id == revision.id)
         )
-        self.session.execute(
-            delete(QuoteStop).where(QuoteStop.quote_revision_id == revision.id)
-        )
-        self.session.execute(
-            delete(QuoteLoad).where(QuoteLoad.quote_revision_id == revision.id)
-        )
+        self.session.execute(delete(QuoteStop).where(QuoteStop.quote_revision_id == revision.id))
+        self.session.execute(delete(QuoteLoad).where(QuoteLoad.quote_revision_id == revision.id))
         revision.charges.clear()
         revision.stops.clear()
         revision.loads.clear()
@@ -216,9 +212,7 @@ class QuoteRepository:
 
     def create_lead(self, company_name: str, phone: str, email: str) -> Customer:
         numbers = self.session.scalars(
-            select(Customer.customer_number).where(
-                Customer.organization_id == self.organization_id
-            )
+            select(Customer.customer_number).where(Customer.organization_id == self.organization_id)
         ).all()
         highest = 0
         for number in numbers:

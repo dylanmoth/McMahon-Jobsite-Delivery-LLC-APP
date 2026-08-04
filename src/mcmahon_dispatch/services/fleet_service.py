@@ -86,7 +86,9 @@ class FleetService:
 
     def list_vehicles(self, query: str = "", include_inactive: bool = False) -> list[VehicleRecord]:
         with self.factory() as session:
-            return FleetRepository(session, self.organization_id).list_vehicles(query, include_inactive)
+            return FleetRepository(session, self.organization_id).list_vehicles(
+                query, include_inactive
+            )
 
     def vehicle(self, vehicle_id: str) -> VehicleRecord:
         with self.factory() as session:
@@ -136,7 +138,12 @@ class FleetService:
             vehicle.active = request.status != "inactive"
             vehicle.updated_by_id = self.user_id
             session.flush()
-            self._audit(session, "vehicle.updated" if vehicle_id else "vehicle.created", "vehicle", str(vehicle.id))
+            self._audit(
+                session,
+                "vehicle.updated" if vehicle_id else "vehicle.created",
+                "vehicle",
+                str(vehicle.id),
+            )
             return str(vehicle.id)
 
     def archive_vehicle(self, vehicle_id: str) -> None:
@@ -152,7 +159,9 @@ class FleetService:
         with self.factory() as session:
             return FleetRepository(session, self.organization_id).list_maintenance(vehicle_id)
 
-    def save_maintenance(self, request: MaintenanceSaveRequest, record_id: str | None = None) -> str:
+    def save_maintenance(
+        self, request: MaintenanceSaveRequest, record_id: str | None = None
+    ) -> str:
         self._require_write()
         if not request.maintenance_type.strip():
             raise ValidationError("Maintenance type is required.")
@@ -191,11 +200,18 @@ class FleetService:
             record.next_due_date = request.next_due_date
             record.next_due_odometer_miles = request.next_due_odometer_miles
             if request.status == "completed" and request.completed_odometer_miles is not None:
-                vehicle.odometer_miles = max(vehicle.odometer_miles, request.completed_odometer_miles)
+                vehicle.odometer_miles = max(
+                    vehicle.odometer_miles, request.completed_odometer_miles
+                )
                 vehicle.updated_by_id = self.user_id
             record.updated_by_id = self.user_id
             session.flush()
-            self._audit(session, "maintenance.updated" if record_id else "maintenance.created", "maintenance_record", str(record.id))
+            self._audit(
+                session,
+                "maintenance.updated" if record_id else "maintenance.created",
+                "maintenance_record",
+                str(record.id),
+            )
             return str(record.id)
 
     def list_fuel(self, vehicle_id: str | None = None) -> list[FuelRecord]:
@@ -206,7 +222,11 @@ class FleetService:
         self._require_write()
         if request.gallons <= 0:
             raise ValidationError("Gallons must be greater than zero.")
-        if request.odometer_miles < 0 or request.price_per_gallon_cents < 0 or request.total_cost_cents < 0:
+        if (
+            request.odometer_miles < 0
+            or request.price_per_gallon_cents < 0
+            or request.total_cost_cents < 0
+        ):
             raise ValidationError("Fuel values cannot be negative.")
         with self.factory.begin() as session:
             vehicle = self._vehicle_entity(session, request.vehicle_id)

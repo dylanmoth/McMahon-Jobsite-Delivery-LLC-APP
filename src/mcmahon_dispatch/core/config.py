@@ -61,7 +61,9 @@ class AppConfig:
             environment=os.getenv("MCMAHON_ENVIRONMENT", "production").strip().lower(),
             log_level=os.getenv("MCMAHON_LOG_LEVEL", "INFO").strip().upper(),
             database_url=db_url,
-            dashboard_refresh_seconds=max(15, int(os.getenv("MCMAHON_DASHBOARD_REFRESH_SECONDS", "60"))),
+            dashboard_refresh_seconds=max(
+                15, int(os.getenv("MCMAHON_DASHBOARD_REFRESH_SECONDS", "60"))
+            ),
             inactivity_lock_minutes=max(1, int(os.getenv("MCMAHON_INACTIVITY_LOCK_MINUTES", "15"))),
             paths=paths,
         )

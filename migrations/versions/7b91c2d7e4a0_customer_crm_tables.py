@@ -4,6 +4,7 @@ Revision ID: 7b91c2d7e4a0
 Revises: 3d601fca4465
 Create Date: 2026-08-03 03:30:00
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -38,8 +39,12 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index("ix_customer_notes_organization_id", "customer_notes", ["organization_id"])
-    op.create_index("ix_customer_notes_customer_created", "customer_notes", ["customer_id", "created_at"])
-    op.create_index("ix_customer_notes_customer_pinned", "customer_notes", ["customer_id", "pinned"])
+    op.create_index(
+        "ix_customer_notes_customer_created", "customer_notes", ["customer_id", "created_at"]
+    )
+    op.create_index(
+        "ix_customer_notes_customer_pinned", "customer_notes", ["customer_id", "pinned"]
+    )
 
     op.create_table(
         "customer_preferred_suppliers",
@@ -62,8 +67,14 @@ def upgrade() -> None:
         sa.UniqueConstraint("customer_id", "supplier_id", name="uq_customer_preferred_supplier"),
         sa.UniqueConstraint("customer_id", "rank", name="uq_customer_preferred_supplier_rank"),
     )
-    op.create_index("ix_customer_preferred_suppliers_organization_id", "customer_preferred_suppliers", ["organization_id"])
-    op.create_index("ix_customer_preferred_supplier_supplier", "customer_preferred_suppliers", ["supplier_id"])
+    op.create_index(
+        "ix_customer_preferred_suppliers_organization_id",
+        "customer_preferred_suppliers",
+        ["organization_id"],
+    )
+    op.create_index(
+        "ix_customer_preferred_supplier_supplier", "customer_preferred_suppliers", ["supplier_id"]
+    )
 
 
 def downgrade() -> None:

@@ -103,9 +103,12 @@ def test_a005_through_a010_oversized_boundaries(
 
 
 def test_a011_orientation_swap(engine: PricingEngine, config: PricingConfiguration) -> None:
-    assert engine.calculate(
-        standard(length_inches=Decimal("58"), width_inches=Decimal("76")), config
-    ).total_cents == 7500
+    assert (
+        engine.calculate(
+            standard(length_inches=Decimal("58"), width_inches=Decimal("76")), config
+        ).total_cents
+        == 7500
+    )
 
 
 def test_a012_exact_research_profile_is_not_research(
@@ -138,7 +141,9 @@ def test_a013_research_threshold(engine: PricingEngine, config: PricingConfigura
     assert not result.sendable
 
 
-def test_a014_research_profile_orientation(engine: PricingEngine, config: PricingConfiguration) -> None:
+def test_a014_research_profile_orientation(
+    engine: PricingEngine, config: PricingConfiguration
+) -> None:
     result = engine.calculate(
         standard(
             length_inches=Decimal("70"),
@@ -153,9 +158,7 @@ def test_a014_research_profile_orientation(engine: PricingEngine, config: Pricin
 
 
 def test_a015_overweight_is_oversized(engine: PricingEngine, config: PricingConfiguration) -> None:
-    result = engine.calculate(
-        standard(overweight=True, estimated_hours=Decimal("1.5")), config
-    )
+    result = engine.calculate(standard(overweight=True, estimated_hours=Decimal("1.5")), config)
     assert result.service_class == "oversized"
     assert result.total_cents == 10000
 
@@ -171,10 +174,10 @@ def test_a018_same_day(engine: PricingEngine, config: PricingConfiguration) -> N
     assert engine.calculate(standard(same_day=True), config).total_cents == 17500
 
 
-def test_a019_emergency_replaces_same_day(engine: PricingEngine, config: PricingConfiguration) -> None:
-    result = engine.calculate(
-        standard(same_day=True, other_client_affected=True), config
-    )
+def test_a019_emergency_replaces_same_day(
+    engine: PricingEngine, config: PricingConfiguration
+) -> None:
+    result = engine.calculate(standard(same_day=True, other_client_affected=True), config)
     assert result.total_cents == 32500
     assert [line.code for line in result.charges].count("same_day") == 0
     assert [line.code for line in result.charges].count("emergency_conflict") == 1
@@ -191,14 +194,13 @@ def test_a020_through_a024_waiting(
     sequence: int,
     expected: int,
 ) -> None:
-    assert engine.calculate(
-        standard(wait_minutes=wait, delay_sequence=sequence), config
-    ).total_cents == expected
+    assert (
+        engine.calculate(standard(wait_minutes=wait, delay_sequence=sequence), config).total_cents
+        == expected
+    )
 
 
-@pytest.mark.parametrize(
-    ("minutes", "expected"), [(15, 7500), (16, 9000), (45, 10500)]
-)
+@pytest.mark.parametrize(("minutes", "expected"), [(15, 7500), (16, 9000), (45, 10500)])
 def test_a025_through_a027_loading(
     engine: PricingEngine, config: PricingConfiguration, minutes: int, expected: int
 ) -> None:
@@ -206,9 +208,7 @@ def test_a025_through_a027_loading(
 
 
 def test_a028_trash(engine: PricingEngine, config: PricingConfiguration) -> None:
-    result = engine.calculate(
-        standard(trash_bag_count=6, trash_contents_identified=True), config
-    )
+    result = engine.calculate(standard(trash_bag_count=6, trash_contents_identified=True), config)
     assert result.total_cents == 13500
 
 
@@ -225,9 +225,7 @@ def test_a030_hazardous(engine: PricingEngine, config: PricingConfiguration) -> 
 
 
 def test_a031_cancel_after_dispatch(engine: PricingEngine, config: PricingConfiguration) -> None:
-    assert engine.calculate(
-        standard(cancelled_after_dispatch=True), config
-    ).total_cents == 7500
+    assert engine.calculate(standard(cancelled_after_dispatch=True), config).total_cents == 7500
 
 
 def test_a032_cancel_with_earned_wait(engine: PricingEngine, config: PricingConfiguration) -> None:
@@ -241,7 +239,9 @@ def test_a032_cancel_with_earned_wait(engine: PricingEngine, config: PricingConf
     }
 
 
-def test_a033_rental_internal_cost_only(engine: PricingEngine, config: PricingConfiguration) -> None:
+def test_a033_rental_internal_cost_only(
+    engine: PricingEngine, config: PricingConfiguration
+) -> None:
     result = engine.calculate(standard(rental_cost_cents=8000), config)
     assert result.total_cents == 7500
     assert result.direct_cost_cents == 8000
@@ -249,9 +249,7 @@ def test_a033_rental_internal_cost_only(engine: PricingEngine, config: PricingCo
 
 
 def test_a034_rental_pass_through(engine: PricingEngine, config: PricingConfiguration) -> None:
-    result = engine.calculate(
-        standard(rental_cost_cents=8000, rental_pass_through=True), config
-    )
+    result = engine.calculate(standard(rental_cost_cents=8000, rental_pass_through=True), config)
     assert result.total_cents == 15500
     assert result.direct_cost_cents == 8000
     assert result.profit_cents == 7500
@@ -311,10 +309,10 @@ def test_a039_research_priority(engine: PricingEngine, config: PricingConfigurat
     assert result.total_cents == 10000
 
 
-def test_a040_both_flags_only_emergency(engine: PricingEngine, config: PricingConfiguration) -> None:
-    result = engine.calculate(
-        standard(same_day=True, other_client_affected=True), config
-    )
+def test_a040_both_flags_only_emergency(
+    engine: PricingEngine, config: PricingConfiguration
+) -> None:
+    result = engine.calculate(standard(same_day=True, other_client_affected=True), config)
     codes = [line.code for line in result.charges]
     assert "emergency_conflict" in codes
     assert "same_day" not in codes

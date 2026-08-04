@@ -102,9 +102,7 @@ class Role(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base):
 class RolePermission(UUIDPrimaryKeyMixin, AuditMixin, Base):
     __tablename__ = "role_permissions"
 
-    role_id: Mapped[str] = mapped_column(
-        ForeignKey("roles.id", ondelete="CASCADE"), nullable=False
-    )
+    role_id: Mapped[str] = mapped_column(ForeignKey("roles.id", ondelete="CASCADE"), nullable=False)
     permission_id: Mapped[str] = mapped_column(
         ForeignKey("permissions.id", ondelete="CASCADE"), nullable=False
     )
@@ -160,12 +158,8 @@ class User(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDeleteM
 class UserRole(UUIDPrimaryKeyMixin, AuditMixin, Base):
     __tablename__ = "user_roles"
 
-    user_id: Mapped[str] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
-    )
-    role_id: Mapped[str] = mapped_column(
-        ForeignKey("roles.id", ondelete="CASCADE"), nullable=False
-    )
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    role_id: Mapped[str] = mapped_column(ForeignKey("roles.id", ondelete="CASCADE"), nullable=False)
 
     user: Mapped[User] = relationship(back_populates="roles")
     role: Mapped[Role] = relationship(back_populates="users")
@@ -179,9 +173,7 @@ class UserRole(UUIDPrimaryKeyMixin, AuditMixin, Base):
 class Device(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base):
     __tablename__ = "devices"
 
-    user_id: Mapped[str] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), nullable=False
-    )
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     device_name: Mapped[str] = mapped_column(String(160), nullable=False)
     device_fingerprint: Mapped[str] = mapped_column(String(128), nullable=False)
     platform: Mapped[str] = mapped_column(String(80), nullable=False)
@@ -237,9 +229,7 @@ class AppSetting(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base)
     is_secret: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     effective_from: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    __table_args__ = (
-        UniqueConstraint("organization_id", "key", name="uq_settings_org_key"),
-    )
+    __table_args__ = (UniqueConstraint("organization_id", "key", name="uq_settings_org_key"),)
 
 
 class Contact(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDeleteMixin, Base):
@@ -327,8 +317,12 @@ class Customer(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDel
     purchase_order_required: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     credit_limit_cents: Mapped[int | None] = mapped_column(Integer)
     requires_call_ahead: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    transactional_updates_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    photo_confirmation_required: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    transactional_updates_enabled: Mapped[bool] = mapped_column(
+        Boolean, default=True, nullable=False
+    )
+    photo_confirmation_required: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
     appointment_required: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     forklift_available: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     liftgate_required: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -354,8 +348,14 @@ class Customer(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDel
     quotes: Mapped[list[Quote]] = relationship(back_populates="customer")
     jobs: Mapped[list[Job]] = relationship(back_populates="customer")
     invoices: Mapped[list[Invoice]] = relationship(back_populates="customer")
-    notes: Mapped[list[CustomerNote]] = relationship(back_populates="customer", cascade="all, delete-orphan", order_by="CustomerNote.created_at.desc()")
-    preferred_suppliers: Mapped[list[CustomerPreferredSupplier]] = relationship(back_populates="customer", cascade="all, delete-orphan")
+    notes: Mapped[list[CustomerNote]] = relationship(
+        back_populates="customer",
+        cascade="all, delete-orphan",
+        order_by="CustomerNote.created_at.desc()",
+    )
+    preferred_suppliers: Mapped[list[CustomerPreferredSupplier]] = relationship(
+        back_populates="customer", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
         UniqueConstraint("organization_id", "customer_number", name="uq_customers_org_number"),
@@ -410,7 +410,9 @@ class CustomerAddress(UUIDPrimaryKeyMixin, AuditMixin, Base):
 class CustomerNote(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDeleteMixin, Base):
     __tablename__ = "customer_notes"
 
-    customer_id: Mapped[str] = mapped_column(ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
+    customer_id: Mapped[str] = mapped_column(
+        ForeignKey("customers.id", ondelete="CASCADE"), nullable=False
+    )
     author_user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     note_type: Mapped[str] = mapped_column(String(40), default="general", nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
@@ -427,8 +429,12 @@ class CustomerNote(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Sof
 class CustomerPreferredSupplier(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base):
     __tablename__ = "customer_preferred_suppliers"
 
-    customer_id: Mapped[str] = mapped_column(ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
-    supplier_id: Mapped[str] = mapped_column(ForeignKey("suppliers.id", ondelete="CASCADE"), nullable=False)
+    customer_id: Mapped[str] = mapped_column(
+        ForeignKey("customers.id", ondelete="CASCADE"), nullable=False
+    )
+    supplier_id: Mapped[str] = mapped_column(
+        ForeignKey("suppliers.id", ondelete="CASCADE"), nullable=False
+    )
     rank: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     notes: Mapped[str] = mapped_column(Text, default="", nullable=False)
 
@@ -485,7 +491,9 @@ class Supplier(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDel
     )
 
 
-class SupplierLocation(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDeleteMixin, Base):
+class SupplierLocation(
+    UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDeleteMixin, Base
+):
     __tablename__ = "supplier_locations"
 
     supplier_id: Mapped[str] = mapped_column(
@@ -583,7 +591,9 @@ class Driver(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDelet
     license_expiration: Mapped[date | None] = mapped_column(Date)
     hire_date: Mapped[date | None] = mapped_column(Date)
     qualifications_json: Mapped[list[str]] = mapped_column(JSON, default=list, nullable=False)
-    emergency_contact_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    emergency_contact_json: Mapped[dict[str, Any]] = mapped_column(
+        JSON, default=dict, nullable=False
+    )
     notes: Mapped[str] = mapped_column(Text, default="", nullable=False)
 
     user: Mapped[User | None] = relationship(back_populates="driver_profile")
@@ -692,7 +702,9 @@ class PricingVersion(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, B
     )
 
 
-class QuickCallNote(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDeleteMixin, Base):
+class QuickCallNote(
+    UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDeleteMixin, Base
+):
     __tablename__ = "quick_call_notes"
 
     customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id", ondelete="SET NULL"))
@@ -729,7 +741,9 @@ class QuickCallNote(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, So
 class QuoteIntake(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base):
     __tablename__ = "quote_intakes"
 
-    quote_id: Mapped[str] = mapped_column(ForeignKey("quotes.id", ondelete="CASCADE"), unique=True, nullable=False)
+    quote_id: Mapped[str] = mapped_column(
+        ForeignKey("quotes.id", ondelete="CASCADE"), unique=True, nullable=False
+    )
     customer_contact_name: Mapped[str] = mapped_column(String(240), default="", nullable=False)
     customer_contact_phone: Mapped[str] = mapped_column(String(64), default="", nullable=False)
     customer_contact_email: Mapped[str] = mapped_column(String(254), default="", nullable=False)
@@ -802,17 +816,13 @@ class QuoteIntake(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base
 class Quote(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDeleteMixin, Base):
     __tablename__ = "quotes"
 
-    customer_id: Mapped[str | None] = mapped_column(
-        ForeignKey("customers.id", ondelete="SET NULL")
-    )
+    customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id", ondelete="SET NULL"))
     primary_contact_id: Mapped[str | None] = mapped_column(
         ForeignKey("contacts.id", ondelete="SET NULL")
     )
     quote_number: Mapped[str] = mapped_column(String(100), nullable=False)
     current_revision_number: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
-    status: Mapped[str] = mapped_column(
-        String(40), default=QuoteStatus.DRAFT.value, nullable=False
-    )
+    status: Mapped[str] = mapped_column(String(40), default=QuoteStatus.DRAFT.value, nullable=False)
     requested_service_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -830,10 +840,14 @@ class Quote(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDelete
     customer: Mapped[Customer | None] = relationship(back_populates="quotes")
     primary_contact: Mapped[Contact | None] = relationship()
     revisions: Mapped[list[QuoteRevision]] = relationship(
-        back_populates="quote", cascade="all, delete-orphan", order_by="QuoteRevision.revision_number"
+        back_populates="quote",
+        cascade="all, delete-orphan",
+        order_by="QuoteRevision.revision_number",
     )
     intake: Mapped[QuoteIntake | None] = relationship(cascade="all, delete-orphan", uselist=False)
-    quick_notes: Mapped[list[QuickCallNote]] = relationship(cascade="save-update, merge", foreign_keys="QuickCallNote.quote_id")
+    quick_notes: Mapped[list[QuickCallNote]] = relationship(
+        cascade="save-update, merge", foreign_keys="QuickCallNote.quote_id"
+    )
     jobs: Mapped[list[Job]] = relationship(back_populates="source_quote")
 
     __table_args__ = (
@@ -860,7 +874,9 @@ class QuoteRevision(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Ba
     viewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     acceptance_method: Mapped[str | None] = mapped_column(String(50))
-    acceptance_evidence_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    acceptance_evidence_json: Mapped[dict[str, Any]] = mapped_column(
+        JSON, default=dict, nullable=False
+    )
     terms_snapshot: Mapped[str] = mapped_column(Text, nullable=False)
     configuration_snapshot_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     change_summary: Mapped[str] = mapped_column(Text, default="", nullable=False)
@@ -903,14 +919,12 @@ class QuoteStop(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base):
     supplier_location_id: Mapped[str | None] = mapped_column(
         ForeignKey("supplier_locations.id", ondelete="SET NULL")
     )
-    address_id: Mapped[str | None] = mapped_column(
-        ForeignKey("addresses.id", ondelete="SET NULL")
-    )
-    contact_id: Mapped[str | None] = mapped_column(
-        ForeignKey("contacts.id", ondelete="SET NULL")
-    )
+    address_id: Mapped[str | None] = mapped_column(ForeignKey("addresses.id", ondelete="SET NULL"))
+    contact_id: Mapped[str | None] = mapped_column(ForeignKey("contacts.id", ondelete="SET NULL"))
     address_snapshot_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
-    geocode_snapshot_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict, nullable=False)
+    geocode_snapshot_json: Mapped[dict[str, Any]] = mapped_column(
+        JSON, default=dict, nullable=False
+    )
     requested_window_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     requested_window_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     service_minutes: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
@@ -977,9 +991,7 @@ class QuoteCharge(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base
     customer_visible: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_manual_adjustment: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     override_reason: Mapped[str | None] = mapped_column(Text)
-    approved_by_id: Mapped[str | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL")
-    )
+    approved_by_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
 
     revision: Mapped[QuoteRevision] = relationship(back_populates="charges")
 
@@ -999,13 +1011,9 @@ class Job(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDeleteMi
     source_quote_revision_id: Mapped[str | None] = mapped_column(
         ForeignKey("quote_revisions.id", ondelete="SET NULL")
     )
-    customer_id: Mapped[str | None] = mapped_column(
-        ForeignKey("customers.id", ondelete="SET NULL")
-    )
+    customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id", ondelete="SET NULL"))
     job_number: Mapped[str] = mapped_column(String(80), nullable=False)
-    status: Mapped[str] = mapped_column(
-        String(40), default=JobStatus.DRAFT.value, nullable=False
-    )
+    status: Mapped[str] = mapped_column(String(40), default=JobStatus.DRAFT.value, nullable=False)
     priority: Mapped[str] = mapped_column(String(20), default="normal", nullable=False)
     service_type: Mapped[str] = mapped_column(String(60), nullable=False)
     requested_window_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -1026,8 +1034,12 @@ class Job(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDeleteMi
     internal_notes: Mapped[str] = mapped_column(Text, default="", nullable=False)
     dispatch_notes: Mapped[str] = mapped_column(Text, default="", nullable=False)
 
-    source_quote: Mapped[Quote | None] = relationship(back_populates="jobs", foreign_keys=[source_quote_id])
-    source_quote_revision: Mapped[QuoteRevision | None] = relationship(foreign_keys=[source_quote_revision_id])
+    source_quote: Mapped[Quote | None] = relationship(
+        back_populates="jobs", foreign_keys=[source_quote_id]
+    )
+    source_quote_revision: Mapped[QuoteRevision | None] = relationship(
+        foreign_keys=[source_quote_revision_id]
+    )
     customer: Mapped[Customer | None] = relationship(back_populates="jobs")
     stops: Mapped[list[JobStop]] = relationship(
         back_populates="job", cascade="all, delete-orphan", order_by="JobStop.sequence"
@@ -1055,20 +1067,14 @@ class Job(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDeleteMi
 class JobStop(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base):
     __tablename__ = "job_stops"
 
-    job_id: Mapped[str] = mapped_column(
-        ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False
-    )
+    job_id: Mapped[str] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False)
     sequence: Mapped[int] = mapped_column(Integer, nullable=False)
     stop_type: Mapped[str] = mapped_column(String(30), nullable=False)
     supplier_location_id: Mapped[str | None] = mapped_column(
         ForeignKey("supplier_locations.id", ondelete="SET NULL")
     )
-    address_id: Mapped[str | None] = mapped_column(
-        ForeignKey("addresses.id", ondelete="SET NULL")
-    )
-    contact_id: Mapped[str | None] = mapped_column(
-        ForeignKey("contacts.id", ondelete="SET NULL")
-    )
+    address_id: Mapped[str | None] = mapped_column(ForeignKey("addresses.id", ondelete="SET NULL"))
+    contact_id: Mapped[str | None] = mapped_column(ForeignKey("contacts.id", ondelete="SET NULL"))
     address_snapshot_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     instructions_snapshot: Mapped[str] = mapped_column(Text, default="", nullable=False)
     planned_arrival_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
@@ -1091,18 +1097,14 @@ class JobStop(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base):
 class JobAssignment(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base):
     __tablename__ = "job_assignments"
 
-    job_id: Mapped[str] = mapped_column(
-        ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False
-    )
+    job_id: Mapped[str] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False)
     driver_id: Mapped[str] = mapped_column(
         ForeignKey("drivers.id", ondelete="RESTRICT"), nullable=False
     )
     vehicle_id: Mapped[str] = mapped_column(
         ForeignKey("vehicles.id", ondelete="RESTRICT"), nullable=False
     )
-    assigned_by_id: Mapped[str | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL")
-    )
+    assigned_by_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     assigned_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, nullable=False
     )
@@ -1127,17 +1129,11 @@ class JobAssignment(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Ba
 class JobStatusEvent(UUIDPrimaryKeyMixin, OrganizationScopedMixin, Base):
     __tablename__ = "job_status_events"
 
-    job_id: Mapped[str] = mapped_column(
-        ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False
-    )
+    job_id: Mapped[str] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False)
     from_status: Mapped[str | None] = mapped_column(String(40))
     to_status: Mapped[str] = mapped_column(String(40), nullable=False)
-    user_id: Mapped[str | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL")
-    )
-    device_id: Mapped[str | None] = mapped_column(
-        ForeignKey("devices.id", ondelete="SET NULL")
-    )
+    user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    device_id: Mapped[str | None] = mapped_column(ForeignKey("devices.id", ondelete="SET NULL"))
     occurred_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, nullable=False
     )
@@ -1148,20 +1144,14 @@ class JobStatusEvent(UUIDPrimaryKeyMixin, OrganizationScopedMixin, Base):
 
     job: Mapped[Job] = relationship(back_populates="status_events")
 
-    __table_args__ = (
-        Index("ix_job_status_events_job_time", "job_id", "occurred_at"),
-    )
+    __table_args__ = (Index("ix_job_status_events_job_time", "job_id", "occurred_at"),)
 
 
 class WaitEvent(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base):
     __tablename__ = "wait_events"
 
-    job_id: Mapped[str] = mapped_column(
-        ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False
-    )
-    job_stop_id: Mapped[str | None] = mapped_column(
-        ForeignKey("job_stops.id", ondelete="SET NULL")
-    )
+    job_id: Mapped[str] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False)
+    job_stop_id: Mapped[str | None] = mapped_column(ForeignKey("job_stops.id", ondelete="SET NULL"))
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     wait_minutes: Mapped[int | None] = mapped_column(Integer)
@@ -1182,9 +1172,7 @@ class DispatchMessage(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, 
     __tablename__ = "dispatch_messages"
 
     job_id: Mapped[str | None] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"))
-    sender_user_id: Mapped[str | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL")
-    )
+    sender_user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     recipient_user_id: Mapped[str | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL")
     )
@@ -1207,9 +1195,7 @@ class DispatchMessage(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, 
 class Invoice(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDeleteMixin, Base):
     __tablename__ = "invoices"
 
-    customer_id: Mapped[str | None] = mapped_column(
-        ForeignKey("customers.id", ondelete="SET NULL")
-    )
+    customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id", ondelete="SET NULL"))
     job_id: Mapped[str | None] = mapped_column(ForeignKey("jobs.id", ondelete="SET NULL"))
     quote_revision_id: Mapped[str | None] = mapped_column(
         ForeignKey("quote_revisions.id", ondelete="SET NULL")
@@ -1291,9 +1277,7 @@ class InvoiceLine(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base
 class Payment(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base):
     __tablename__ = "payments"
 
-    customer_id: Mapped[str | None] = mapped_column(
-        ForeignKey("customers.id", ondelete="SET NULL")
-    )
+    customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id", ondelete="SET NULL"))
     payment_number: Mapped[str] = mapped_column(String(80), nullable=False)
     status: Mapped[str] = mapped_column(
         String(30), default=PaymentStatus.PENDING.value, nullable=False
@@ -1361,12 +1345,8 @@ class Expense(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDele
     __tablename__ = "expenses"
 
     job_id: Mapped[str | None] = mapped_column(ForeignKey("jobs.id", ondelete="SET NULL"))
-    vehicle_id: Mapped[str | None] = mapped_column(
-        ForeignKey("vehicles.id", ondelete="SET NULL")
-    )
-    supplier_id: Mapped[str | None] = mapped_column(
-        ForeignKey("suppliers.id", ondelete="SET NULL")
-    )
+    vehicle_id: Mapped[str | None] = mapped_column(ForeignKey("vehicles.id", ondelete="SET NULL"))
+    supplier_id: Mapped[str | None] = mapped_column(ForeignKey("suppliers.id", ondelete="SET NULL"))
     category_id: Mapped[str] = mapped_column(
         ForeignKey("expense_categories.id", ondelete="RESTRICT"), nullable=False
     )
@@ -1392,7 +1372,9 @@ class Expense(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDele
     )
 
 
-class MaintenanceRecord(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDeleteMixin, Base):
+class MaintenanceRecord(
+    UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDeleteMixin, Base
+):
     __tablename__ = "maintenance_records"
 
     vehicle_id: Mapped[str] = mapped_column(
@@ -1426,9 +1408,7 @@ class FuelEntry(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base):
     vehicle_id: Mapped[str] = mapped_column(
         ForeignKey("vehicles.id", ondelete="CASCADE"), nullable=False
     )
-    driver_id: Mapped[str | None] = mapped_column(
-        ForeignKey("drivers.id", ondelete="SET NULL")
-    )
+    driver_id: Mapped[str | None] = mapped_column(ForeignKey("drivers.id", ondelete="SET NULL"))
     job_id: Mapped[str | None] = mapped_column(ForeignKey("jobs.id", ondelete="SET NULL"))
     purchased_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     odometer_miles: Mapped[Decimal] = mapped_column(Numeric(12, 1), nullable=False)
@@ -1481,7 +1461,9 @@ class Document(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, SoftDel
     )
 
     __table_args__ = (
-        UniqueConstraint("organization_id", "checksum_sha256", "storage_key", name="uq_document_storage"),
+        UniqueConstraint(
+            "organization_id", "checksum_sha256", "storage_key", name="uq_document_storage"
+        ),
         Index("ix_documents_org_type_created", "organization_id", "document_type", "created_at"),
         Index("ix_documents_checksum", "checksum_sha256"),
         CheckConstraint("size_bytes >= 0", name="ck_documents_size"),
@@ -1514,24 +1496,18 @@ class Signature(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base):
     document_id: Mapped[str] = mapped_column(
         ForeignKey("documents.id", ondelete="CASCADE"), unique=True, nullable=False
     )
-    job_id: Mapped[str] = mapped_column(
-        ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False
-    )
+    job_id: Mapped[str] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False)
     signer_name: Mapped[str] = mapped_column(String(200), nullable=False)
     signer_role: Mapped[str | None] = mapped_column(String(120))
     signed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     statement_snapshot: Mapped[str] = mapped_column(Text, nullable=False)
-    device_id: Mapped[str | None] = mapped_column(
-        ForeignKey("devices.id", ondelete="SET NULL")
-    )
+    device_id: Mapped[str | None] = mapped_column(ForeignKey("devices.id", ondelete="SET NULL"))
     latitude: Mapped[Decimal | None] = mapped_column(Numeric(10, 7))
     longitude: Mapped[Decimal | None] = mapped_column(Numeric(10, 7))
 
     document: Mapped[Document] = relationship(back_populates="signature")
 
-    __table_args__ = (
-        Index("ix_signatures_job_signed", "job_id", "signed_at"),
-    )
+    __table_args__ = (Index("ix_signatures_job_signed", "job_id", "signed_at"),)
 
 
 class GeofenceVersion(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base):
@@ -1582,17 +1558,11 @@ class RouteSnapshot(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Ba
 class Communication(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Base):
     __tablename__ = "communications"
 
-    customer_id: Mapped[str | None] = mapped_column(
-        ForeignKey("customers.id", ondelete="SET NULL")
-    )
-    contact_id: Mapped[str | None] = mapped_column(
-        ForeignKey("contacts.id", ondelete="SET NULL")
-    )
+    customer_id: Mapped[str | None] = mapped_column(ForeignKey("customers.id", ondelete="SET NULL"))
+    contact_id: Mapped[str | None] = mapped_column(ForeignKey("contacts.id", ondelete="SET NULL"))
     quote_id: Mapped[str | None] = mapped_column(ForeignKey("quotes.id", ondelete="SET NULL"))
     job_id: Mapped[str | None] = mapped_column(ForeignKey("jobs.id", ondelete="SET NULL"))
-    invoice_id: Mapped[str | None] = mapped_column(
-        ForeignKey("invoices.id", ondelete="SET NULL")
-    )
+    invoice_id: Mapped[str | None] = mapped_column(ForeignKey("invoices.id", ondelete="SET NULL"))
     channel: Mapped[str] = mapped_column(String(30), nullable=False)
     direction: Mapped[str] = mapped_column(String(20), nullable=False)
     template_code: Mapped[str | None] = mapped_column(String(80))
@@ -1660,9 +1630,7 @@ class SyncConflict(UUIDPrimaryKeyMixin, OrganizationScopedMixin, AuditMixin, Bas
     local_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     remote_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     status: Mapped[str] = mapped_column(String(30), default="open", nullable=False)
-    resolved_by_id: Mapped[str | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL")
-    )
+    resolved_by_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     resolution_json: Mapped[dict[str, Any] | None] = mapped_column(JSON)
     resolution_reason: Mapped[str | None] = mapped_column(Text)

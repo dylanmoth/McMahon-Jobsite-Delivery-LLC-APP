@@ -9,6 +9,12 @@ from typing import Any
 
 
 class SettingsService:
+    """Thread-safe JSON settings with atomic persistence.
+
+    The service avoids disk writes when values do not change. That matters because
+    navigation, resize, and appearance events can fire frequently in a desktop UI.
+    """
+
     DEFAULTS: dict[str, Any] = {
         "appearance.theme": "dark",
         "appearance.accent": "classic",
@@ -27,35 +33,62 @@ class SettingsService:
         self._lock = RLock()
         self._values = self._read()
 
-    def _read(self) -> dict[str, Any]:
-        if not self.path.exists():
-            return dict(self.DEFAULTS)
-        try:
-            loaded = json.loads(self.path.read_text(encoding="utf-8"))
-            return {**self.DEFAULTS, **loaded} if isinstance(loaded, dict) else dict(self.DEFAULTS)
-        except (OSError, json.JSONDecodeError):
-            return dict(self.DEFAULTS)
-
     def get(self, key: str, default: Any = None) -> Any:
         with self._lock:
             return self._values.get(key, default)
 
-    def set(self, key: str, value: Any) -> None:
+    def snapshot(self) -> dict[str, Any]:
+        """Return an isolated copy suitable for diagnostics or previews."""
+
         with self._lock:
+            return dict(self._values)
+
+    def set(self, key: str, value: Any) -> bool:
+        """Persist one value and report whether anything changed."""
+
+        with self._lock:
+            if self._values.get(key) == value:
+                return False
             self._values[key] = value
             self._write_atomic()
+            return True
 
-    def set_many(self, values: dict[str, Any]) -> None:
+    def set_many(self, values: dict[str, Any]) -> bool:
         """Persist a related group of settings with a single atomic write."""
+
         with self._lock:
-            self._values.update(values)
+            changed = {
+                key: value for key, value in values.items() if self._values.get(key) != value
+            }
+            if not changed:
+                return False
+            self._values.update(changed)
             self._write_atomic()
+            return True
+
+    def _read(self) -> dict[str, Any]:
+        if not self.path.exists():
+            return dict(self.DEFAULTS)
+
+        try:
+            loaded = json.loads(self.path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return dict(self.DEFAULTS)
+
+        if not isinstance(loaded, dict):
+            return dict(self.DEFAULTS)
+
+        return {**self.DEFAULTS, **loaded}
 
     def _write_atomic(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        fd, temp_name = tempfile.mkstemp(prefix="settings-", suffix=".json", dir=self.path.parent)
+        file_descriptor, temp_name = tempfile.mkstemp(
+            prefix="settings-",
+            suffix=".json",
+            dir=self.path.parent,
+        )
         try:
-            with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            with os.fdopen(file_descriptor, "w", encoding="utf-8") as handle:
                 json.dump(self._values, handle, indent=2, sort_keys=True)
                 handle.flush()
                 os.fsync(handle.fileno())

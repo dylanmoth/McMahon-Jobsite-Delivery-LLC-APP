@@ -231,9 +231,7 @@ class QuoteService:
         result = self.engine.calculate(request.pricing_inputs(), configuration)
         return self._operationalize_result(request, result)
 
-    def save_draft(
-        self, request: QuoteDraftRequest, quote_id: str | None = None
-    ) -> SavedQuote:
+    def save_draft(self, request: QuoteDraftRequest, quote_id: str | None = None) -> SavedQuote:
         self._ensure_write()
         if not request.customer_id:
             raise ValidationError("Select a customer before saving the quote.")
@@ -459,9 +457,7 @@ class QuoteService:
             )
             return saved, destination
 
-    def save_quick_note(
-        self, request: QuickNoteRequest, quote_id: str | None = None
-    ) -> str:
+    def save_quick_note(self, request: QuickNoteRequest, quote_id: str | None = None) -> str:
         self._ensure_write()
         if not any(
             value.strip()
@@ -564,42 +560,97 @@ class QuoteService:
         warnings = list(result.warnings)
         missing: list[tuple[str, str, str]] = []
         if not request.customer_id:
-            missing.append(("customer_missing", "Customer is not selected.", "Select a customer before sending."))
+            missing.append(
+                (
+                    "customer_missing",
+                    "Customer is not selected.",
+                    "Select a customer before sending.",
+                )
+            )
         if not request.customer_contact_name.strip():
-            missing.append(("contact_missing", "Customer contact is missing.", "Enter the contractor contact responsible for this quote."))
+            missing.append(
+                (
+                    "contact_missing",
+                    "Customer contact is missing.",
+                    "Enter the contractor contact responsible for this quote.",
+                )
+            )
         if not request.supplier_name.strip() or not request.supplier_address.strip():
-            missing.append(("pickup_missing", "Pickup supplier or address is incomplete.", "Confirm the supplier/store and pickup address."))
+            missing.append(
+                (
+                    "pickup_missing",
+                    "Pickup supplier or address is incomplete.",
+                    "Confirm the supplier/store and pickup address.",
+                )
+            )
         if not request.jobsite_address.strip():
-            missing.append(("jobsite_missing", "Jobsite address is missing.", "Enter the complete delivery address."))
+            missing.append(
+                (
+                    "jobsite_missing",
+                    "Jobsite address is missing.",
+                    "Enter the complete delivery address.",
+                )
+            )
         if not request.materials.strip():
-            missing.append(("materials_missing", "Material description is missing.", "Describe the material, tools, or supplies being delivered."))
+            missing.append(
+                (
+                    "materials_missing",
+                    "Material description is missing.",
+                    "Describe the material, tools, or supplies being delivered.",
+                )
+            )
         if request.order_ready is None:
-            missing.append(("readiness_unknown", "Order readiness is unknown.", "Confirm whether the supplier order is ready or not ready."))
+            missing.append(
+                (
+                    "readiness_unknown",
+                    "Order readiness is unknown.",
+                    "Confirm whether the supplier order is ready or not ready.",
+                )
+            )
         for code, message, action in missing:
             if not any(item.code == code for item in warnings):
                 warnings.append(PricingWarning(code, "danger", message, action, "FR-QUOTE-006"))
-        if not missing or result.recommended_status in {QuoteStatus.RESEARCH_REQUIRED.value, QuoteStatus.DECLINED.value}:
-            return result if not missing else PricingResult(
-                charges=result.charges, warnings=tuple(warnings), total_cents=result.total_cents,
-                direct_cost_cents=result.direct_cost_cents, profit_cents=result.profit_cents,
-                margin_basis_points=result.margin_basis_points, confidence=result.confidence,
-                recommended_status=result.recommended_status, manual_review_required=True,
-                sendable=False, service_class=result.service_class,
-                chargeable_miles=result.chargeable_miles, pricing_version_code=result.pricing_version_code,
+        if not missing or result.recommended_status in {
+            QuoteStatus.RESEARCH_REQUIRED.value,
+            QuoteStatus.DECLINED.value,
+        }:
+            return (
+                result
+                if not missing
+                else PricingResult(
+                    charges=result.charges,
+                    warnings=tuple(warnings),
+                    total_cents=result.total_cents,
+                    direct_cost_cents=result.direct_cost_cents,
+                    profit_cents=result.profit_cents,
+                    margin_basis_points=result.margin_basis_points,
+                    confidence=result.confidence,
+                    recommended_status=result.recommended_status,
+                    manual_review_required=True,
+                    sendable=False,
+                    service_class=result.service_class,
+                    chargeable_miles=result.chargeable_miles,
+                    pricing_version_code=result.pricing_version_code,
+                )
             )
         return PricingResult(
-            charges=result.charges, warnings=tuple(warnings), total_cents=result.total_cents,
-            direct_cost_cents=result.direct_cost_cents, profit_cents=result.profit_cents,
-            margin_basis_points=result.margin_basis_points, confidence="Research / Decline",
-            recommended_status=QuoteStatus.NEEDS_INFORMATION.value, manual_review_required=True,
-            sendable=False, service_class=result.service_class,
-            chargeable_miles=result.chargeable_miles, pricing_version_code=result.pricing_version_code,
+            charges=result.charges,
+            warnings=tuple(warnings),
+            total_cents=result.total_cents,
+            direct_cost_cents=result.direct_cost_cents,
+            profit_cents=result.profit_cents,
+            margin_basis_points=result.margin_basis_points,
+            confidence="Research / Decline",
+            recommended_status=QuoteStatus.NEEDS_INFORMATION.value,
+            manual_review_required=True,
+            sendable=False,
+            service_class=result.service_class,
+            chargeable_miles=result.chargeable_miles,
+            pricing_version_code=result.pricing_version_code,
         )
 
     @staticmethod
-    def _apply_quote(
-        quote: Quote, request: QuoteDraftRequest, result: PricingResult
-    ) -> None:
+    def _apply_quote(quote: Quote, request: QuoteDraftRequest, result: PricingResult) -> None:
         quote.requested_service_at = request.requested_service_at
         quote.expires_at = request.expires_at or (datetime.now(UTC) + timedelta(days=14))
         quote.customer_notes = request.customer_notes.strip()
@@ -689,9 +740,7 @@ class QuoteService:
                 },
                 geocode_snapshot_json={
                     "inside_psl": request.jobsite_inside_psl,
-                    "store_to_jobsite_miles": self._decimal_or_none(
-                        request.store_to_jobsite_miles
-                    ),
+                    "store_to_jobsite_miles": self._decimal_or_none(request.store_to_jobsite_miles),
                     "chargeable_miles": str(result.chargeable_miles),
                 },
                 instructions=request.access_instructions,
@@ -734,9 +783,7 @@ class QuoteService:
                     rule_reason=line.reason,
                     customer_visible=line.customer_visible,
                     is_manual_adjustment=line.manual,
-                    override_reason=(
-                        request.manual_adjustment_reason if line.manual else None
-                    ),
+                    override_reason=(request.manual_adjustment_reason if line.manual else None),
                     approved_by_id=self.user_id if line.manual else None,
                     created_by_id=self.user_id,
                     updated_by_id=self.user_id,
@@ -792,9 +839,7 @@ class QuoteService:
         return labels.get(result.service_class, "Construction-material delivery service")
 
     @staticmethod
-    def _yes_no_unknown(
-        value: bool | None, *, yes: str = "Yes", no: str = "No"
-    ) -> str:
+    def _yes_no_unknown(value: bool | None, *, yes: str = "Yes", no: str = "No") -> str:
         if value is None:
             return "Unknown"
         return yes if value else no

@@ -168,9 +168,13 @@ class InvoiceRepository:
         if customer_id:
             stmt = stmt.where(Invoice.customer_id == customer_id)
         if date_from:
-            stmt = stmt.where(func.date(func.coalesce(Invoice.issued_at, Invoice.created_at)) >= date_from)
+            stmt = stmt.where(
+                func.date(func.coalesce(Invoice.issued_at, Invoice.created_at)) >= date_from
+            )
         if date_to:
-            stmt = stmt.where(func.date(func.coalesce(Invoice.issued_at, Invoice.created_at)) <= date_to)
+            stmt = stmt.where(
+                func.date(func.coalesce(Invoice.issued_at, Invoice.created_at)) <= date_to
+            )
         if outstanding_only:
             stmt = stmt.where(Invoice.balance_cents > 0)
         rows = self.session.execute(stmt).all()
@@ -251,7 +255,15 @@ class InvoiceRepository:
         user_id: str | None,
     ) -> None:
         invoice.lines.clear()
-        for sequence, (charge_code, description, quantity, unit_rate_cents, line_total_cents, taxable, reason) in enumerate(lines, start=1):
+        for sequence, (
+            charge_code,
+            description,
+            quantity,
+            unit_rate_cents,
+            line_total_cents,
+            taxable,
+            reason,
+        ) in enumerate(lines, start=1):
             invoice.lines.append(
                 InvoiceLine(
                     organization_id=self.organization_id,
@@ -381,14 +393,18 @@ class InvoiceRepository:
                     Invoice.customer_id == customer_id,
                     Invoice.deleted_at.is_(None),
                     Invoice.balance_cents > 0,
-                    Invoice.status.not_in((InvoiceStatus.VOID.value, InvoiceStatus.WRITTEN_OFF.value)),
+                    Invoice.status.not_in(
+                        (InvoiceStatus.VOID.value, InvoiceStatus.WRITTEN_OFF.value)
+                    ),
                 )
                 .options(selectinload(Invoice.lines))
                 .order_by(Invoice.due_at.asc().nulls_last(), Invoice.created_at.asc())
             )
         )
 
-    def customer_statement_rows(self, customer_id: str, date_from: date, date_to: date) -> tuple[Customer, list[Invoice], list[Payment]]:
+    def customer_statement_rows(
+        self, customer_id: str, date_from: date, date_to: date
+    ) -> tuple[Customer, list[Invoice], list[Payment]]:
         customer = self.customer(customer_id)
         if customer is None:
             raise LookupError("Customer not found.")
@@ -448,7 +464,9 @@ class InvoiceRepository:
                     Invoice.balance_cents > 0,
                     Invoice.due_at.is_not(None),
                     func.date(Invoice.due_at) < today,
-                    Invoice.status.not_in((InvoiceStatus.VOID.value, InvoiceStatus.WRITTEN_OFF.value)),
+                    Invoice.status.not_in(
+                        (InvoiceStatus.VOID.value, InvoiceStatus.WRITTEN_OFF.value)
+                    ),
                 )
             )
             or 0
@@ -464,17 +482,25 @@ class InvoiceRepository:
         aging: list[AgingBucket] = []
         for label, condition in bucket_specs:
             row = self.session.execute(
-                select(func.count(Invoice.id), func.coalesce(func.sum(Invoice.balance_cents), 0)).where(
+                select(
+                    func.count(Invoice.id), func.coalesce(func.sum(Invoice.balance_cents), 0)
+                ).where(
                     Invoice.organization_id == self.organization_id,
                     Invoice.deleted_at.is_(None),
                     Invoice.balance_cents > 0,
                     condition,
-                    Invoice.status.not_in((InvoiceStatus.VOID.value, InvoiceStatus.WRITTEN_OFF.value)),
+                    Invoice.status.not_in(
+                        (InvoiceStatus.VOID.value, InvoiceStatus.WRITTEN_OFF.value)
+                    ),
                 )
             ).one()
             aging.append(AgingBucket(label, int(row[0]), int(row[1])))
         method_rows = self.session.execute(
-            select(Payment.payment_method, func.count(Payment.id), func.coalesce(func.sum(Payment.gross_amount_cents), 0))
+            select(
+                Payment.payment_method,
+                func.count(Payment.id),
+                func.coalesce(func.sum(Payment.gross_amount_cents), 0),
+            )
             .where(
                 Payment.organization_id == self.organization_id,
                 Payment.status == PaymentStatus.SUCCEEDED.value,
@@ -492,12 +518,27 @@ class InvoiceRepository:
             invoice_count=count,
             paid_invoice_count=paid_count,
             average_invoice_cents=round(invoiced / count) if count else 0,
-            collection_rate=(Decimal(collected) / Decimal(invoiced) * 100).quantize(Decimal("0.01")) if invoiced else Decimal("0"),
+            collection_rate=(
+                (Decimal(collected) / Decimal(invoiced) * 100).quantize(Decimal("0.01"))
+                if invoiced
+                else Decimal("0")
+            ),
             aging=tuple(aging),
-            payment_methods=tuple((str(method), int(method_count), int(amount)) for method, method_count, amount in method_rows),
+            payment_methods=tuple(
+                (str(method), int(method_count), int(amount))
+                for method, method_count, amount in method_rows
+            ),
         )
 
-    def audit(self, event_type: str, entity_type: str, entity_id: str, user_id: str | None, reason: str | None = None, details: dict | None = None) -> None:
+    def audit(
+        self,
+        event_type: str,
+        entity_type: str,
+        entity_id: str,
+        user_id: str | None,
+        reason: str | None = None,
+        details: dict | None = None,
+    ) -> None:
         self.session.add(
             AuditEvent(
                 organization_id=self.organization_id,

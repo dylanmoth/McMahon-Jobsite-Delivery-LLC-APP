@@ -308,9 +308,7 @@ class DispatchRepository:
         pickup: dict[str, Any],
         delivery: dict[str, Any],
     ) -> None:
-        self.session.execute(
-            JobStop.__table__.delete().where(JobStop.job_id == job.id)
-        )
+        self.session.execute(JobStop.__table__.delete().where(JobStop.job_id == job.id))
         for sequence, stop_type, values in (
             (1, "pickup", pickup),
             (2, "delivery", delivery),
@@ -385,7 +383,9 @@ class DispatchRepository:
         assignment.unassigned_reason = reason
         assignment.updated_at = at
 
-    def driver_has_active_assignment(self, driver_id: str, *, excluding_job_id: str | None = None) -> bool:
+    def driver_has_active_assignment(
+        self, driver_id: str, *, excluding_job_id: str | None = None
+    ) -> bool:
         stmt = select(func.count(JobAssignment.id)).where(
             JobAssignment.organization_id == self.organization_id,
             JobAssignment.driver_id == driver_id,
@@ -395,7 +395,9 @@ class DispatchRepository:
             stmt = stmt.where(JobAssignment.job_id != excluding_job_id)
         return bool(self.session.scalar(stmt) or 0)
 
-    def vehicle_has_active_assignment(self, vehicle_id: str, *, excluding_job_id: str | None = None) -> bool:
+    def vehicle_has_active_assignment(
+        self, vehicle_id: str, *, excluding_job_id: str | None = None
+    ) -> bool:
         stmt = select(func.count(JobAssignment.id)).where(
             JobAssignment.organization_id == self.organization_id,
             JobAssignment.vehicle_id == vehicle_id,
@@ -668,7 +670,9 @@ class DispatchRepository:
 
     @staticmethod
     def _latest_assignment_record(job: Job) -> AssignmentSummary | None:
-        assignment = max(job.assignments, key=lambda item: item.assigned_at) if job.assignments else None
+        assignment = (
+            max(job.assignments, key=lambda item: item.assigned_at) if job.assignments else None
+        )
         return DispatchRepository._assignment_summary(assignment)
 
     def _job_record(self, job: Job) -> DispatchJobRecord:

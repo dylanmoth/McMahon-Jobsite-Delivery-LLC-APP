@@ -17,7 +17,11 @@ from mcmahon_dispatch.database.models import (
 )
 from mcmahon_dispatch.services.auth_service import AuthenticationService
 from mcmahon_dispatch.services.customer_service import CustomerSaveRequest, CustomerService
-from mcmahon_dispatch.services.quote_service import QuickNoteRequest, QuoteDraftRequest, QuoteService
+from mcmahon_dispatch.services.quote_service import (
+    QuickNoteRequest,
+    QuoteDraftRequest,
+    QuoteService,
+)
 
 
 def _services(database, config):
@@ -217,5 +221,6 @@ def test_read_only_quote_service_cannot_mutate(database, config) -> None:
     assert result.total_cents == 7500
     import pytest
     from mcmahon_dispatch.core.exceptions import ValidationError
+
     with pytest.raises(ValidationError):
         read_only.save_draft(_request(customer_id))

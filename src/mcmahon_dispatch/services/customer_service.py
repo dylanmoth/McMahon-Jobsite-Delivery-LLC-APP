@@ -159,9 +159,7 @@ class CustomerService:
             customer.forklift_available = request.forklift_available
             customer.liftgate_required = request.liftgate_required
             customer.preferred_pickup_window = (
-                request.preferred_pickup_window.strip()
-                if request.preferred_pickup_window
-                else None
+                request.preferred_pickup_window.strip() if request.preferred_pickup_window else None
             )
             customer.preferred_delivery_window = (
                 request.preferred_delivery_window.strip()
@@ -404,9 +402,7 @@ class CustomerService:
                     link.customer_id = target.id
                     target_contact_ids.add(link.contact_id)
 
-            target_address_keys = {
-                (link.address_id, link.usage_type) for link in target.addresses
-            }
+            target_address_keys = {(link.address_id, link.usage_type) for link in target.addresses}
             for link in list(source.addresses):
                 key = (link.address_id, link.usage_type)
                 if key in target_address_keys:
@@ -480,7 +476,11 @@ class CustomerService:
                 "notes",
             ):
                 value = data.get(field)
-                setattr(contact, field, str(value).strip() if value else None if field != "notes" else "")
+                setattr(
+                    contact,
+                    field,
+                    str(value).strip() if value else None if field != "notes" else "",
+                )
             contact.transactional_sms_consent = bool(data.get("transactional_sms_consent"))
             contact.marketing_sms_consent = bool(data.get("marketing_sms_consent"))
             contact.updated_by_id = self.user_id
@@ -546,11 +546,11 @@ class CustomerService:
                 setattr(
                     address,
                     field,
-                    str(value).strip()
-                    if value
-                    else ""
-                    if field in {"entered_address", "instructions"}
-                    else None,
+                    (
+                        str(value).strip()
+                        if value
+                        else "" if field in {"entered_address", "instructions"} else None
+                    ),
                 )
             address.updated_by_id = self.user_id
             session.add(address)

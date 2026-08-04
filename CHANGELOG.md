@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.0 - 2026-08-03
+
+- Refactored application startup around a typed service container and lazy page creation.
+- Added shared UI, formatting, table, model, and debounce utilities to remove repeated code.
+- Improved responsive layouts across the shell and high-density operational pages.
+- Improved table refresh performance, stylesheet caching, and no-op settings persistence.
+- Standardized naming, code formatting, page headers, action styling, focus states, and destructive actions.
+- Rebuilt reporting code for readability while preserving CSV, Excel, and PDF output.
+- Added shared-formatting and settings-performance tests.
+- Preserved all existing workflows, public service methods, database data, and document exports.
+
 ## 0.7.0 - 2026-08-03
 
 - Added production Fleet Management for vehicles, odometer tracking, maintenance, repairs, oil changes, fuel purchases, MPG, insurance and registration expiration, cost per mile, and fleet reports.

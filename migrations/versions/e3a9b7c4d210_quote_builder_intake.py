@@ -4,6 +4,7 @@ Revision ID: e3a9b7c4d210
 Revises: c5a81d2f901e
 Create Date: 2026-08-03 04:30:00
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -62,16 +63,24 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["quote_id"], ["quotes.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index("ix_quick_call_notes_org_created", "quick_call_notes", ["organization_id", "created_at"])
+    op.create_index(
+        "ix_quick_call_notes_org_created", "quick_call_notes", ["organization_id", "created_at"]
+    )
     op.create_index("ix_quick_call_notes_quote", "quick_call_notes", ["quote_id"])
 
     op.create_table(
         "quote_intakes",
         *_audit_columns(),
         sa.Column("quote_id", sa.String(length=36), nullable=False),
-        sa.Column("customer_contact_name", sa.String(length=240), nullable=False, server_default=""),
-        sa.Column("customer_contact_phone", sa.String(length=64), nullable=False, server_default=""),
-        sa.Column("customer_contact_email", sa.String(length=254), nullable=False, server_default=""),
+        sa.Column(
+            "customer_contact_name", sa.String(length=240), nullable=False, server_default=""
+        ),
+        sa.Column(
+            "customer_contact_phone", sa.String(length=64), nullable=False, server_default=""
+        ),
+        sa.Column(
+            "customer_contact_email", sa.String(length=254), nullable=False, server_default=""
+        ),
         sa.Column("supplier_name", sa.String(length=240), nullable=False, server_default=""),
         sa.Column("supplier_address", sa.Text(), nullable=False, server_default=""),
         sa.Column("supplier_contact", sa.String(length=240), nullable=False, server_default=""),
@@ -105,8 +114,12 @@ def upgrade() -> None:
         sa.Column("delay_sequence", sa.Integer(), nullable=False, server_default="1"),
         sa.Column("loading_minutes", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("trash_bag_count", sa.Integer(), nullable=False, server_default="0"),
-        sa.Column("trash_contents_identified", sa.Boolean(), nullable=False, server_default=sa.false()),
-        sa.Column("cancelled_after_dispatch", sa.Boolean(), nullable=False, server_default=sa.false()),
+        sa.Column(
+            "trash_contents_identified", sa.Boolean(), nullable=False, server_default=sa.false()
+        ),
+        sa.Column(
+            "cancelled_after_dispatch", sa.Boolean(), nullable=False, server_default=sa.false()
+        ),
         sa.Column("tolls_cents", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("tolls_pass_through", sa.Boolean(), nullable=False, server_default=sa.false()),
         sa.Column("parking_cents", sa.Integer(), nullable=False, server_default="0"),

@@ -14,7 +14,9 @@ from mcmahon_dispatch.services.fleet_service import (
 
 def _service(database, config):
     auth = AuthenticationService(database.session_factory, config)
-    user = auth.create_initial_admin("fleet_owner", "Fleet Owner", "fleet@example.com", "StrongPassword123")
+    user = auth.create_initial_admin(
+        "fleet_owner", "Fleet Owner", "fleet@example.com", "StrongPassword123"
+    )
     return FleetService(database.session_factory, user.organization_id, user.id, can_write=True)
 
 
@@ -52,10 +54,28 @@ def test_vehicle_maintenance_fuel_and_summary(database, config) -> None:
         )
     )
     service.save_fuel(
-        FuelSaveRequest(vehicle_id, datetime.now(UTC) - timedelta(days=7), Decimal("10000"), Decimal("10"), 350, 3500, "Fuel Stop", True)
+        FuelSaveRequest(
+            vehicle_id,
+            datetime.now(UTC) - timedelta(days=7),
+            Decimal("10000"),
+            Decimal("10"),
+            350,
+            3500,
+            "Fuel Stop",
+            True,
+        )
     )
     service.save_fuel(
-        FuelSaveRequest(vehicle_id, datetime.now(UTC), Decimal("10250"), Decimal("10"), 360, 3600, "Fuel Stop", True)
+        FuelSaveRequest(
+            vehicle_id,
+            datetime.now(UTC),
+            Decimal("10250"),
+            Decimal("10"),
+            360,
+            3600,
+            "Fuel Stop",
+            True,
+        )
     )
     vehicles = service.list_vehicles()
     created = next(vehicle for vehicle in vehicles if vehicle.id == vehicle_id)

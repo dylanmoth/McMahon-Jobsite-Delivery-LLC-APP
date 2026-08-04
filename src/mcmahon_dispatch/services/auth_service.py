@@ -304,7 +304,9 @@ class AuthenticationService:
     @staticmethod
     def _ensure_login_allowed(session: Session, user: User, now: datetime) -> None:
         if user.status == UserStatus.DISABLED.value:
-            AuthenticationService._audit(session, user, "auth.login_blocked", {"reason": "disabled"})
+            AuthenticationService._audit(
+                session, user, "auth.login_blocked", {"reason": "disabled"}
+            )
             raise AuthenticationError("This account has been disabled. Contact an administrator.")
         if user.locked_until and user.locked_until > now:
             AuthenticationService._audit(session, user, "auth.login_blocked", {"reason": "locked"})

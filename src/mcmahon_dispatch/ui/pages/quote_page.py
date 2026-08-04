@@ -35,6 +35,7 @@ from PySide6.QtWidgets import (
 )
 
 from mcmahon_dispatch.core.exceptions import ValidationError
+from mcmahon_dispatch.core.formatting import format_currency
 from mcmahon_dispatch.repositories.quote_repository import CustomerChoice, QuoteSummary
 from mcmahon_dispatch.services.pricing_engine import PricingResult
 from mcmahon_dispatch.services.quote_service import (
@@ -323,7 +324,9 @@ class QuotePage(QWidget):
 
         title = QLabel("Quote Builder")
         title.setObjectName("pageTitle")
-        subtitle = QLabel("Fast intake, transparent SRS pricing, profit review, and customer-ready PDFs")
+        subtitle = QLabel(
+            "Fast intake, transparent SRS pricing, profit review, and customer-ready PDFs"
+        )
         subtitle.setObjectName("muted")
         heading = QVBoxLayout()
         heading.setSpacing(2)
@@ -646,9 +649,13 @@ class QuotePage(QWidget):
 
         self.charge_table = QTableWidget(0, 3)
         self.charge_table.setHorizontalHeaderLabels(["Charge", "Reason", "Amount"])
-        self.charge_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        self.charge_table.horizontalHeader().setSectionResizeMode(
+            0, QHeaderView.ResizeMode.ResizeToContents
+        )
         self.charge_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        self.charge_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        self.charge_table.horizontalHeader().setSectionResizeMode(
+            2, QHeaderView.ResizeMode.ResizeToContents
+        )
         self.charge_table.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
         self.charge_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.charge_table.setMinimumHeight(170)
@@ -682,9 +689,8 @@ class QuotePage(QWidget):
         selected_customer_text = (
             self.customer.currentText().strip() if hasattr(self, "customer") else ""
         )
-        selected_quote = (
-            self.current_quote_id
-            or (self.quote_selector.currentData() if hasattr(self, "quote_selector") else None)
+        selected_quote = self.current_quote_id or (
+            self.quote_selector.currentData() if hasattr(self, "quote_selector") else None
         )
         was_dirty = self._dirty
         self._loading = True
@@ -838,9 +844,7 @@ class QuotePage(QWidget):
 
     def generate_pdf(self) -> None:
         try:
-            saved, path = self.service.generate_quote_pdf(
-                self.request(), self.current_quote_id
-            )
+            saved, path = self.service.generate_quote_pdf(self.request(), self.current_quote_id)
         except ValidationError as exc:
             QMessageBox.warning(self, "Quote PDF", str(exc))
             return
@@ -1116,12 +1120,17 @@ class QuotePage(QWidget):
             self.trash_bags.setValue(int(trash_values[0]))
             lowered_trash = note.trash_text.lower()
             self.trash_identified.setChecked(
-                any(word in lowered_trash for word in ("identified", "known", "non-hazardous", "nonhazardous"))
+                any(
+                    word in lowered_trash
+                    for word in ("identified", "known", "non-hazardous", "nonhazardous")
+                )
             )
         if note.vehicle_text.strip():
             existing_dispatch = self.dispatch_notes.toPlainText().strip()
             vehicle_note = f"Vehicle note: {note.vehicle_text.strip()}"
-            self.dispatch_notes.setPlainText("\n\n".join(value for value in (existing_dispatch, vehicle_note) if value))
+            self.dispatch_notes.setPlainText(
+                "\n\n".join(value for value in (existing_dispatch, vehicle_note) if value)
+            )
         if note.supplier_address.strip():
             self.supplier_address.setPlainText(note.supplier_address)
         if note.jobsite_address.strip():
@@ -1172,7 +1181,9 @@ class QuotePage(QWidget):
         index = self.customer.findData(customer_id)
         if index >= 0:
             self.customer.setCurrentIndex(index)
-        QMessageBox.information(self, "Save as Lead", "A new lead customer was created and selected.")
+        QMessageBox.information(
+            self, "Save as Lead", "A new lead customer was created and selected."
+        )
 
     def _call_sheet(self) -> None:
         try:

@@ -34,9 +34,7 @@ class PricingConfiguration:
     rental_pass_through_enabled: bool
 
     @classmethod
-    def from_mapping(
-        cls, version_code: str, settings: Mapping[str, Any]
-    ) -> "PricingConfiguration":
+    def from_mapping(cls, version_code: str, settings: Mapping[str, Any]) -> "PricingConfiguration":
         standard = settings.get("standard_dimensions_inches", [76, 58])
         research = settings.get("research_dimensions_inches", [126, 70, 28])
         return cls(
@@ -45,30 +43,20 @@ class PricingConfiguration:
             standard_dimensions_inches=tuple(Decimal(str(value)) for value in standard),  # type: ignore[arg-type]
             research_dimensions_inches=tuple(Decimal(str(value)) for value in research),  # type: ignore[arg-type]
             mileage_rate_cents=int(settings["mileage_rate_cents"]),
-            oversized_up_to_two_hours_cents=int(
-                settings["oversized_up_to_two_hours_cents"]
-            ),
+            oversized_up_to_two_hours_cents=int(settings["oversized_up_to_two_hours_cents"]),
             oversized_started_hour_cents=int(settings["oversized_started_hour_cents"]),
-            oversized_five_plus_hours_cents=int(
-                settings["oversized_five_plus_hours_cents"]
-            ),
+            oversized_five_plus_hours_cents=int(settings["oversized_five_plus_hours_cents"]),
             additional_stop_cents=int(settings["additional_stop_cents"]),
             same_day_cents=int(settings["same_day_cents"]),
             emergency_conflict_cents=int(settings["emergency_conflict_cents"]),
             waiting_free_minutes=int(settings["waiting_free_minutes"]),
-            waiting_started_half_hour_cents=int(
-                settings["waiting_started_half_hour_cents"]
-            ),
+            waiting_started_half_hour_cents=int(settings["waiting_started_half_hour_cents"]),
             loading_free_minutes=int(settings["loading_free_minutes"]),
             loading_increment_minutes=int(settings["loading_increment_minutes"]),
             loading_increment_cents=int(settings["loading_increment_cents"]),
             trash_bag_cents=int(settings["trash_bag_cents"]),
-            cancellation_after_dispatch_cents=int(
-                settings["cancellation_after_dispatch_cents"]
-            ),
-            rental_pass_through_enabled=bool(
-                settings.get("rental_pass_through_enabled", False)
-            ),
+            cancellation_after_dispatch_cents=int(settings["cancellation_after_dispatch_cents"]),
+            rental_pass_through_enabled=bool(settings.get("rental_pass_through_enabled", False)),
         )
 
 
@@ -175,7 +163,9 @@ class PricingEngine:
         service_class = "undetermined"
 
         if hazardous:
-            reason = inputs.prohibited_reason.strip() or "Hazardous or prohibited material selected."
+            reason = (
+                inputs.prohibited_reason.strip() or "Hazardous or prohibited material selected."
+            )
             warnings.append(
                 PricingWarning(
                     "hazardous_material",
@@ -203,7 +193,9 @@ class PricingEngine:
             )
         else:
             research_profile = tuple(sorted(configuration.research_dimensions_inches))
-            if any(actual > limit for actual, limit in zip(dimensions, research_profile, strict=True)):
+            if any(
+                actual > limit for actual, limit in zip(dimensions, research_profile, strict=True)
+            ):
                 research = True
                 service_class = "research"
                 warnings.append(
@@ -250,9 +242,7 @@ class PricingEngine:
                         )
                     )
                 else:
-                    service_fee = self._oversized_fee(
-                        inputs.estimated_hours, configuration
-                    )
+                    service_fee = self._oversized_fee(inputs.estimated_hours, configuration)
                     charges.append(
                         ChargeLine(
                             "oversized_service",
@@ -291,9 +281,7 @@ class PricingEngine:
                 )
             )
         elif chargeable_miles > ZERO:
-            mileage_total = self._money_product(
-                chargeable_miles, configuration.mileage_rate_cents
-            )
+            mileage_total = self._money_product(chargeable_miles, configuration.mileage_rate_cents)
             charges.append(
                 ChargeLine(
                     "mileage",
@@ -688,10 +676,12 @@ class PricingEngine:
         total = max(0, sum(line.total_cents for line in charge_tuple))
         costs = self._direct_costs(inputs) if direct_costs is None else direct_costs
         profit = total - costs
-        margin = int((Decimal(profit) / Decimal(total) * Decimal("10000")).quantize(ONE)) if total else None
-        confidence = self._confidence(
-            total, margin, warning_tuple, inputs, recommended_status
+        margin = (
+            int((Decimal(profit) / Decimal(total) * Decimal("10000")).quantize(ONE))
+            if total
+            else None
         )
+        confidence = self._confidence(total, margin, warning_tuple, inputs, recommended_status)
         return PricingResult(
             charges=charge_tuple,
             warnings=warning_tuple,
@@ -716,11 +706,15 @@ class PricingEngine:
         inputs: PricingInputs,
         status: str,
     ) -> str:
-        if status in {
-            QuoteStatus.RESEARCH_REQUIRED.value,
-            QuoteStatus.NEEDS_INFORMATION.value,
-            QuoteStatus.DECLINED.value,
-        } or not total:
+        if (
+            status
+            in {
+                QuoteStatus.RESEARCH_REQUIRED.value,
+                QuoteStatus.NEEDS_INFORMATION.value,
+                QuoteStatus.DECLINED.value,
+            }
+            or not total
+        ):
             return "Research / Decline"
         has_risk = (
             inputs.overweight is None
