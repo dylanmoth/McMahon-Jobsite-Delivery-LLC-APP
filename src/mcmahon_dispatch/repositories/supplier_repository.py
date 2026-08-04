@@ -120,19 +120,16 @@ class SupplierRepository:
                     location_count=int(count or 0),
                     primary_phone=(primary.phone or "") if primary else "",
                     city_state=", ".join(
-                        part for part in (
+                        part
+                        for part in (
                             address.city if address else None,
                             address.state if address else None,
                         )
                         if part
                     ),
-                    average_wait_minutes=(
-                        sum(waits, Decimal("0")) / len(waits) if waits else None
-                    ),
+                    average_wait_minutes=(sum(waits, Decimal("0")) / len(waits) if waits else None),
                     readiness_score=(
-                        sum(readiness, Decimal("0")) / len(readiness)
-                        if readiness
-                        else None
+                        sum(readiness, Decimal("0")) / len(readiness) if readiness else None
                     ),
                     preferred_customer_count=int(preferred or 0),
                 )
@@ -184,9 +181,7 @@ class SupplierRepository:
         )
         return int(
             self.session.scalar(
-                select(func.count(JobStop.id)).where(
-                    JobStop.supplier_location_id.in_(location_ids)
-                )
+                select(func.count(JobStop.id)).where(JobStop.supplier_location_id.in_(location_ids))
             )
             or 0
         )

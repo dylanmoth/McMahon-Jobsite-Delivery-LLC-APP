@@ -79,7 +79,9 @@ class UploadDialog(QDialog):
         self.retention.addItem("Temporary", "temporary")
         self.entity_type = QComboBox()
         self.entity_type.setEditable(True)
-        self.entity_type.addItems(["", "customer", "supplier", "quote", "job", "invoice", "vehicle", "driver"])
+        self.entity_type.addItems(
+            ["", "customer", "supplier", "quote", "job", "invoice", "vehicle", "driver"]
+        )
         self.entity_id = QLineEdit()
         self.relationship = QComboBox()
         for value in ("attachment", "source", "proof", "receipt", "signed_copy", "photo"):
@@ -96,8 +98,7 @@ class UploadDialog(QDialog):
         form.addRow("Relationship", self.relationship)
         form.addRow("Notes", self.notes)
         buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Save
-            | QDialogButtonBox.StandardButton.Cancel
+            QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel
         )
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
@@ -192,7 +193,15 @@ class DocumentPage(QWidget):
         self.notes.setReadOnly(True)
         self.links = QTextEdit()
         self.links.setReadOnly(True)
-        for widget in (self.title, self.meta, self.path, QLabel("Notes"), self.notes, QLabel("Linked Records"), self.links):
+        for widget in (
+            self.title,
+            self.meta,
+            self.path,
+            QLabel("Notes"),
+            self.notes,
+            QLabel("Linked Records"),
+            self.links,
+        ):
             detail_layout.addWidget(widget)
         actions = QHBoxLayout()
         for label, handler in [
@@ -235,9 +244,7 @@ class DocumentPage(QWidget):
         self.document_type.addItem("All document types", None)
         for value in types:
             self.document_type.addItem(value.replace("_", " ").title(), value)
-        self.document_type.setCurrentIndex(
-            max(0, self.document_type.findData(current_type))
-        )
+        self.document_type.setCurrentIndex(max(0, self.document_type.findData(current_type)))
         self.document_type.blockSignals(False)
         self.table.setRowCount(len(self.rows))
         for row_index, row in enumerate(self.rows):
@@ -314,9 +321,7 @@ class DocumentPage(QWidget):
     def _open_folder(self) -> None:
         if self.current is None:
             return
-        QDesktopServices.openUrl(
-            QUrl.fromLocalFile(str(self.current.storage_path.parent))
-        )
+        QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.current.storage_path.parent)))
 
     def _toggle_archive(self) -> None:
         if self.current is None:
@@ -337,8 +342,7 @@ class DocumentPage(QWidget):
                 "Delete Document",
                 "Remove this document from normal views?\n\n"
                 "The physical file is retained for audit and recovery.",
-                QMessageBox.StandardButton.Yes
-                | QMessageBox.StandardButton.Cancel,
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
             )
             != QMessageBox.StandardButton.Yes
         ):

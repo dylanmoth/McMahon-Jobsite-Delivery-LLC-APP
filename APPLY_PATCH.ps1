@@ -7,6 +7,15 @@ if (-not (Test-Path $Python)) {
 }
 
 & $Python (Join-Path $PSScriptRoot "apply_patch.py") --project $Project
+if ($LASTEXITCODE -ne 0) { throw "Patch installation failed." }
+
+Set-Location $Project
+& $Python -m pip install -e ".[dev]"
+if ($LASTEXITCODE -ne 0) { throw "Dependency refresh failed." }
+
 Write-Host ""
-Write-Host "Patch installed. Run McMahon Dispatch with:"
-Write-Host "& `"$Python`" -m mcmahon_dispatch"
+Write-Host "Production release tooling installed." -ForegroundColor Green
+Write-Host "Run tests with:"
+Write-Host "& `"$Python`" -m pytest"
+Write-Host "Build a signed installer with:"
+Write-Host "powershell -ExecutionPolicy Bypass -File .\scripts\build_release.ps1 -RequireSigning"

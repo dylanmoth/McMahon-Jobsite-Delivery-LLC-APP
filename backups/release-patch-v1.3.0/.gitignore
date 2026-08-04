@@ -13,9 +13,3 @@ dist/
 *.db
 *.sqlite3
 *.log
-# Release outputs
-build/pyinstaller/
-build/version_info.txt
-dist/
-release/
-*.spec.bak

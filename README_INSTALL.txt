@@ -1,21 +1,21 @@
-McMahon Dispatch v1.2.1
-Invoice Fix + Suppliers + Documents
+McMahon Dispatch v1.3.0 Production Release Patch
 
-INSTALL
+INSTALL THE PATCH
 1. Close McMahon Dispatch.
-2. Back up the McMahonDispatch project folder.
+2. Back up the full project folder.
 3. Extract this ZIP.
-4. Right-click APPLY_PATCH.ps1 and choose "Run with PowerShell".
-   If Windows blocks scripts, open PowerShell in the extracted folder and run:
+4. Open PowerShell in the extracted folder.
+5. Run:
    powershell -ExecutionPolicy Bypass -File .\APPLY_PATCH.ps1
-5. Run tests and start the app:
-   cd "C:\Users\thedy\OneDrive\Desktop\MJD BUSINESS\McMahonDispatch"
-   .\.venv\Scripts\python.exe -m pytest
-   .\.venv\Scripts\python.exe -m mcmahon_dispatch
 
-WHAT IT CHANGES
-- Fixes InvoicePage _search_debounce initialization order.
-- Replaces the Suppliers placeholder with a database-backed supplier directory.
-- Replaces the Documents placeholder with a managed document library.
-- Uses the existing suppliers, supplier locations, contacts, addresses, documents,
-  and document links database tables. No Alembic migration is required.
+TEST THE APPLICATION
+cd "C:\Users\thedy\OneDrive\Desktop\MJD BUSINESS\McMahonDispatch"
+.\.venv\Scripts\python.exe -m pytest
+.\.venv\Scripts\python.exe -m mcmahon_dispatch
+
+BUILD THE INSTALLER
+Install Inno Setup 6 and a trusted Authenticode certificate, then run:
+powershell -ExecutionPolicy Bypass -File .\scripts\build_release.ps1 -RequireSigning
+
+No database migration is included in this patch.
+The release installer preserves all local databases, documents, settings, logs, and backups.

@@ -26,8 +26,6 @@ class SettingsService:
         "window.height": 900,
         "dashboard.refresh_seconds": 60,
         "security.inactivity_lock_minutes": 15,
-        "updates.auto_check": True,
-        "updates.last_checked_at": "",
     }
 
     def __init__(self, path: Path) -> None:

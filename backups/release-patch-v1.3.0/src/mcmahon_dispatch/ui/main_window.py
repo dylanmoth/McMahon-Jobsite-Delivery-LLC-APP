@@ -35,7 +35,6 @@ from mcmahon_dispatch.ui.pages.document_page import DocumentPage
 from mcmahon_dispatch.ui.pages.user_management_page import ProfilePage, UserManagementPage
 from mcmahon_dispatch.ui.sidebar import Sidebar
 from mcmahon_dispatch.ui.theme.theme_manager import ThemeManager
-from mcmahon_dispatch.ui.update_controller import UpdateController
 
 PageFactory = Callable[[], QWidget]
 
@@ -59,7 +58,6 @@ class MainWindow(QMainWindow):
         self.auth = services.auth
         self.user = user
         self.theme_manager = theme_manager
-        self.update_controller = UpdateController(self, config, self.settings)
 
         self._inactive_seconds = 0
         self._current_route = "dashboard"
@@ -86,11 +84,6 @@ class MainWindow(QMainWindow):
         self.section_title = QLabel("Home")
         self.section_title.setObjectName("sectionTitle")
 
-        self.update_button = QPushButton("Check for Updates")
-        self.update_button.setObjectName("secondary")
-        self.update_button.setToolTip("Check for a newer signed release")
-        self.update_button.clicked.connect(lambda: self.update_controller.check(manual=True))
-
         self.user_badge = QLabel(user.display_name)
         self.user_badge.setObjectName("topbarUser")
         self.user_badge.setToolTip(f"Signed in as {user.display_name}")
@@ -104,7 +97,6 @@ class MainWindow(QMainWindow):
 
         start_route = str(self.settings.get("appearance.start_page", "dashboard"))
         self.navigate(start_route if self._route_available(start_route) else "dashboard")
-        self.update_controller.schedule_automatic_check()
 
     def navigate(self, route: str) -> None:
         """Open a route, creating its owning page only when first needed."""
@@ -260,7 +252,6 @@ class MainWindow(QMainWindow):
         top_bar_layout.addWidget(self.navigation_toggle)
         top_bar_layout.addWidget(self.section_title)
         top_bar_layout.addStretch(1)
-        top_bar_layout.addWidget(self.update_button)
         top_bar_layout.addWidget(self.user_badge)
 
         content = QWidget()

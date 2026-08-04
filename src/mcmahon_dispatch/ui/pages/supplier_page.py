@@ -57,8 +57,7 @@ class SupplierDialog(QDialog):
         form.addRow("", self.active)
         form.addRow("Internal notes", self.notes)
         buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Save
-            | QDialogButtonBox.StandardButton.Cancel
+            QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel
         )
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
@@ -132,8 +131,7 @@ class LocationDialog(QDialog):
         ]:
             form.addRow(label, widget)
         buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Save
-            | QDialogButtonBox.StandardButton.Cancel
+            QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel
         )
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
@@ -156,9 +154,7 @@ class LocationDialog(QDialog):
             access_notes=self.access_notes.toPlainText(),
             dock_available=self.dock.currentData(),
             loading_equipment=tuple(
-                item.strip()
-                for item in self.loading_equipment.text().split(",")
-                if item.strip()
+                item.strip() for item in self.loading_equipment.text().split(",") if item.strip()
             ),
             average_wait_minutes=Decimal(str(self.wait.value())),
             readiness_score=Decimal(str(self.readiness.value())),
@@ -193,8 +189,7 @@ class ContactDialog(QDialog):
         ]:
             form.addRow(label, widget)
         buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Save
-            | QDialogButtonBox.StandardButton.Cancel
+            QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel
         )
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
@@ -386,7 +381,11 @@ class SupplierPage(QWidget):
                 str(row.location_count),
                 row.primary_phone,
                 row.city_state,
-                f"{row.average_wait_minutes:.0f} min" if row.average_wait_minutes is not None else "-",
+                (
+                    f"{row.average_wait_minutes:.0f} min"
+                    if row.average_wait_minutes is not None
+                    else "-"
+                ),
                 f"{row.readiness_score:.0f}%" if row.readiness_score is not None else "-",
                 str(row.preferred_customer_count),
                 "Active" if row.active else "Archived",
@@ -451,7 +450,11 @@ class SupplierPage(QWidget):
                 location.store_number,
                 ", ".join(v for v in (location.address, location.city, location.state) if v),
                 location.phone,
-                f"{location.average_wait_minutes:.0f} min" if location.average_wait_minutes is not None else "-",
+                (
+                    f"{location.average_wait_minutes:.0f} min"
+                    if location.average_wait_minutes is not None
+                    else "-"
+                ),
                 f"{location.readiness_score:.0f}%" if location.readiness_score is not None else "-",
                 "Yes" if location.active else "No",
             ]
@@ -582,8 +585,7 @@ class SupplierPage(QWidget):
                 "Delete Supplier",
                 f"Delete {self.current_details.name}?\n\n"
                 "Suppliers with job history cannot be deleted and should be archived.",
-                QMessageBox.StandardButton.Yes
-                | QMessageBox.StandardButton.Cancel,
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
             )
             != QMessageBox.StandardButton.Yes
         ):

@@ -6,13 +6,6 @@ from pathlib import Path
 
 from platformdirs import PlatformDirs
 
-from mcmahon_dispatch.core.version import (
-    APP_NAME,
-    COMPANY_NAME,
-    GITHUB_RELEASES_API,
-    __version__,
-)
-
 
 @dataclass(frozen=True, slots=True)
 class AppPaths:
@@ -55,7 +48,6 @@ class AppConfig:
     database_url: str
     dashboard_refresh_seconds: int
     inactivity_lock_minutes: int
-    update_api_url: str
     paths: AppPaths
 
     @classmethod
@@ -63,9 +55,9 @@ class AppConfig:
         paths = AppPaths.discover()
         db_url = os.getenv("MCMAHON_DATABASE_URL") or f"sqlite:///{paths.database_file.as_posix()}"
         return cls(
-            app_name=APP_NAME,
-            app_version=__version__,
-            organization_name=COMPANY_NAME,
+            app_name="McMahon Dispatch",
+            app_version="1.0.0",
+            organization_name="McMahon Jobsite Delivery LLC",
             environment=os.getenv("MCMAHON_ENVIRONMENT", "production").strip().lower(),
             log_level=os.getenv("MCMAHON_LOG_LEVEL", "INFO").strip().upper(),
             database_url=db_url,
@@ -73,6 +65,5 @@ class AppConfig:
                 15, int(os.getenv("MCMAHON_DASHBOARD_REFRESH_SECONDS", "60"))
             ),
             inactivity_lock_minutes=max(1, int(os.getenv("MCMAHON_INACTIVITY_LOCK_MINUTES", "15"))),
-            update_api_url=os.getenv("MCMAHON_UPDATE_API_URL", GITHUB_RELEASES_API).strip(),
             paths=paths,
         )

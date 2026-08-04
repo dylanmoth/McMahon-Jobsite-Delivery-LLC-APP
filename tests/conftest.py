@@ -29,6 +29,7 @@ def config(tmp_path: Path) -> AppConfig:
         f"sqlite:///{paths.database_file.as_posix()}",
         60,
         15,
+        "https://api.github.com/repos/dylanmoth/McMahon-Jobsite-Delivery-LLC-APP/releases/latest",
         paths,
     )
 
