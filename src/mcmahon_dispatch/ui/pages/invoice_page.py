@@ -502,6 +502,7 @@ class InvoicePage(QWidget):
         self._payment_rows: list[PaymentSummary] = []
         self._customers: list[CustomerChoice] = []
         self.setObjectName("invoicePage")
+        self._search_debounce = DebouncedCall(self.refresh, parent=self)
         root = QVBoxLayout(self)
         root.setContentsMargins(18, 16, 18, 16)
         root.setSpacing(12)
@@ -547,7 +548,6 @@ class InvoicePage(QWidget):
         root.addWidget(self.tabs, 1)
         QShortcut(QKeySequence("Ctrl+N"), self).activated.connect(self.new_invoice)
         QShortcut(QKeySequence("Ctrl+Shift+P"), self).activated.connect(self.record_payment)
-        self._search_debounce = DebouncedCall(self.refresh, parent=self)
         self.on_activated()
 
     def _invoice_tab(self) -> QWidget:

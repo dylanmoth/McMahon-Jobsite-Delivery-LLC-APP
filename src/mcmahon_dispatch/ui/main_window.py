@@ -30,6 +30,8 @@ from mcmahon_dispatch.ui.pages.invoice_page import InvoicePage
 from mcmahon_dispatch.ui.pages.module_page import ModulePage
 from mcmahon_dispatch.ui.pages.quote_page import QuotePage
 from mcmahon_dispatch.ui.pages.reporting_page import ReportingPage
+from mcmahon_dispatch.ui.pages.supplier_page import SupplierPage
+from mcmahon_dispatch.ui.pages.document_page import DocumentPage
 from mcmahon_dispatch.ui.pages.user_management_page import ProfilePage, UserManagementPage
 from mcmahon_dispatch.ui.sidebar import Sidebar
 from mcmahon_dispatch.ui.theme.theme_manager import ThemeManager
@@ -130,6 +132,9 @@ class MainWindow(QMainWindow):
             factories["dispatch"] = lambda: DispatchPage(self.services.dispatch)
         if self.user.can("fleet.read"):
             factories["fleet"] = lambda: FleetPage(self.services.fleet)
+        if self.user.can("customers.read"):
+            factories["suppliers"] = lambda: SupplierPage(self.services.suppliers)
+            factories["documents"] = lambda: DocumentPage(self.services.documents)
         if self.user.can("billing.read"):
             factories["invoices"] = lambda: InvoicePage(self.services.invoices)
         if self.user.can("reports.financial"):
@@ -153,6 +158,8 @@ class MainWindow(QMainWindow):
             "users",
             "profile",
             "settings",
+            "suppliers",
+            "documents",
         }
         for item in NAVIGATION:
             if item.key not in implemented and self.user.can(item.permission):

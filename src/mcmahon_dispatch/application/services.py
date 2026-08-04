@@ -15,6 +15,8 @@ from mcmahon_dispatch.services.invoice_service import InvoiceService
 from mcmahon_dispatch.services.quote_service import QuoteService
 from mcmahon_dispatch.services.reporting_service import ReportingService
 from mcmahon_dispatch.services.settings_service import SettingsService
+from mcmahon_dispatch.services.supplier_service import SupplierService
+from mcmahon_dispatch.services.document_service import DocumentService
 from mcmahon_dispatch.services.user_management_service import UserManagementService
 
 
@@ -32,6 +34,8 @@ class ServiceContainer:
     invoices: InvoiceService
     reporting: ReportingService
     user_management: UserManagementService
+    suppliers: SupplierService
+    documents: DocumentService
 
 
 def build_services(
@@ -85,6 +89,19 @@ def build_services(
             can_write=user.can("billing.write"),
         ),
         reporting=ReportingService(factory, user.organization_id, config.paths.documents),
+        suppliers=SupplierService(
+            factory,
+            user.organization_id,
+            user.id,
+            can_write=user.can("customers.write"),
+        ),
+        documents=DocumentService(
+            factory,
+            user.organization_id,
+            user.id,
+            config.paths.documents,
+            can_write=user.can("customers.write"),
+        ),
         user_management=UserManagementService(
             factory,
             user.organization_id,
